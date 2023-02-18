@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 'jdbc:mysql://localhost:3306/local?serverTimezone=Asia/Seoul'
+    username: 'root'
+    password: '1234'
+  jpa:
+    hibernate:
+      ddl-auto: create
+      properties: # property 사용 설정
+        hibernate: # hibernate property 설정
+          format_sql: true
+
+
