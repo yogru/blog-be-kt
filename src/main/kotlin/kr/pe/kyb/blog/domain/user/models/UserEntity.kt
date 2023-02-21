@@ -1,4 +1,4 @@
-package kr.pe.kyb.blog.domain.post.models
+package kr.pe.kyb.blog.domain.user.models
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -9,7 +9,7 @@ import org.hibernate.annotations.GenericGenerator
 import java.util.UUID
 
 @Entity
-class User(
+class UserEntity(
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
