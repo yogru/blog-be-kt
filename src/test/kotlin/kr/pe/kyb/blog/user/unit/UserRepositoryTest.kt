@@ -2,6 +2,7 @@ package kr.pe.kyb.blog.user.unit
 
 import jakarta.transaction.Transactional
 import kr.pe.kyb.blog.domain.user.models.UserEntity
+import kr.pe.kyb.blog.domain.user.models.UserStatus
 import kr.pe.kyb.blog.domain.user.repositories.UserRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -26,10 +27,9 @@ class UserRepositoryTest {
 
         val createdUser = this.userRepository.add(
             UserEntity(
-                id = null,
                 account = account,
                 password = password,
-                status = status,
+                status = UserStatus.SIGN,
                 nickName = nickName
             )
         )
