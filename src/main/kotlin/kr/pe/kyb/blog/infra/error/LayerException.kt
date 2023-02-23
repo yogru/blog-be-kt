@@ -44,7 +44,7 @@ class ServiceException private constructor(
 data class ControllerErrorResponse(
     val statusCode: Int,
     val message: String,
-    val detail: String?
+    val detail: String? = null
 ) {}
 
 
