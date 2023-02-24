@@ -1,12 +1,9 @@
 package kr.pe.kyb.blog.domain.user.repositories
 
-import com.querydsl.jpa.impl.JPAQueryFactory
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import kr.pe.kyb.blog.domain.user.models.UserEntity
-import kr.pe.kyb.blog.infra.persistence.QueryDslBase
-import org.springframework.stereotype.Repository
+import org.springframework.data.jpa.repository.JpaRepository
+import java.util.*
 
-@Repository
-class UserRepository : QueryDslBase<UserEntity>() {
+interface UserRepository : JpaRepository<UserEntity, UUID> {
+    fun findOneByAccount(account: String): UserEntity?
 }

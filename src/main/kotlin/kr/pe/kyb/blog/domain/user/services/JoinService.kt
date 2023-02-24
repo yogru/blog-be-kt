@@ -1,12 +1,14 @@
 package kr.pe.kyb.blog.domain.user.services
 
+import kr.pe.kyb.blog.domain.user.CreateFail
+import kr.pe.kyb.blog.domain.user.CreateFailExistEmail
+
 import kr.pe.kyb.blog.domain.user.models.UserEntity
 import kr.pe.kyb.blog.domain.user.models.UserStatus
+import kr.pe.kyb.blog.domain.user.repositories.UserQdRepository
 import kr.pe.kyb.blog.domain.user.repositories.UserRepository
-import kr.pe.kyb.blog.infra.error.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.lang.NullPointerException
 import java.util.UUID
 
 data class CreateUserDto(
@@ -24,12 +26,16 @@ interface JoinServiceInterface {
 @Service
 @Transactional(readOnly = true)
 class JoinService(
+    val userQdRepository: UserQdRepository,
     val userRepository: UserRepository
 ) : JoinServiceInterface {
 
     @Transactional()
-    override fun join(user: CreateUserDto): UUID = catchDomainException<UUID> {
-        val createdUser = this.userRepository.add(
+    override fun join(user: CreateUserDto): UUID {
+        var foundUser = this.userRepository.findOneByAccount(user.email)
+        println(foundUser)
+        foundUser != null && throw CreateFailExistEmail(user.email)
+        val createdUser = this.userRepository.save(
             UserEntity(
                 account = user.email,
                 password = user.password,
@@ -37,12 +43,7 @@ class JoinService(
                 nickName = user.nickName
             )
         )
-        createdUser.id ?: throw ServiceException.createException(
-            ErrorCode(
-                HttpCode.InternalServerError,
-                "유저 생성 실패"
-            )
-        )
+        return createdUser.id ?: throw CreateFail()
     }
 
 

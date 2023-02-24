@@ -13,9 +13,9 @@ import org.springframework.boot.test.context.SpringBootTest
 @SpringBootTest
 class UserRepositoryTest {
 
+
     @Autowired
     lateinit var userRepository: UserRepository
-
 
     @Test
     @Transactional
@@ -25,7 +25,7 @@ class UserRepositoryTest {
         val status = "wait"
         val nickName = "kyb"
 
-        val createdUser = this.userRepository.add(
+        val createdUser = this.userRepository.save(
             UserEntity(
                 account = account,
                 password = password,
@@ -38,7 +38,7 @@ class UserRepositoryTest {
         Assertions.assertNotNull(createdUser.id)
         Assertions.assertEquals(createdUser.account, account)
         Assertions.assertEquals(createdUser.password, password)
-        Assertions.assertEquals(createdUser.status, status)
+        Assertions.assertEquals(createdUser.status, UserStatus.SIGN)
         Assertions.assertEquals(createdUser.nickName, nickName)
     }
 

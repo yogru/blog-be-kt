@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank
 import kr.pe.kyb.blog.domain.user.services.CreateUserDto
 import kr.pe.kyb.blog.domain.user.services.JoinService
 import kr.pe.kyb.blog.infra.anotation.RestV2
-import kr.pe.kyb.blog.infra.error.catchServiceException
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.util.UUID
@@ -27,8 +26,8 @@ class UserController(
     val joinService: JoinService
 ) {
     @PostMapping("/user/join")
-    fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID = catchServiceException(isDebug = true) {
-        this.joinService.join(
+    fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID {
+        return this.joinService.join(
             CreateUserDto(
                 email = req.email,
                 password = req.password,
