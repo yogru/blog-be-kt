@@ -1,16 +1,20 @@
 package kr.pe.kyb.blog.domain.controller
 
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import kr.pe.kyb.blog.domain.user.services.CreateUserDto
 import kr.pe.kyb.blog.domain.user.services.JoinService
 import kr.pe.kyb.blog.infra.anotation.RestV2
+import kr.pe.kyb.blog.infra.jwt.JwtToken
+import kr.pe.kyb.blog.infra.logger.Log
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.util.UUID
 
 data class JoinUserRequest(
     @field:NotBlank(message = "이메일 입력 해주세요")
+    @field:Email
     val email: String,
 
     @field:NotBlank(message = "비밀번호 입력 해주세요")
@@ -20,11 +24,22 @@ data class JoinUserRequest(
     val nickName: String
 )
 
+data class LoginUserRequest(
+    @field:NotBlank(message = "이메일 입력 해주세요")
+    @field:Email
+    val email: String,
+
+    @field:NotBlank(message = "비밀번호 입력 해주세요")
+    val password: String,
+)
 
 @RestV2
 class UserController(
     val joinService: JoinService
 ) {
+
+    companion object : Log {}
+
     @PostMapping("/user/join")
     fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID {
         return this.joinService.join(
@@ -34,6 +49,11 @@ class UserController(
                 nickName = req.nickName
             )
         )
+    }
+
+    @PostMapping("/user/login")
+    fun loginUser(@RequestBody @Valid req: LoginUserRequest): JwtToken {
+        return this.joinService.login(req.email, req.password)
     }
 
 

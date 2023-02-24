@@ -13,4 +13,9 @@ class HealthController {
     fun healthCheck(): String {
         return "OK"
     }
+
+    @GetMapping("/admin/health-check")
+    fun adminHealthCheck(): String {
+        return "OK"
+    }
 }

@@ -1,4 +1,4 @@
-package kr.pe.kyb.blog.infra.config
+package kr.pe.kyb.blog.infra.persistence
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import jakarta.persistence.EntityManager

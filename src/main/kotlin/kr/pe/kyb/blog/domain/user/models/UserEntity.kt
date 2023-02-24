@@ -3,6 +3,9 @@ package kr.pe.kyb.blog.domain.user.models
 import jakarta.persistence.*
 import kr.pe.kyb.blog.infra.persistence.JPABaseEntity
 import org.hibernate.annotations.GenericGenerator
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 import java.util.UUID
 
 enum class UserStatus(
@@ -14,6 +17,46 @@ enum class UserStatus(
     REMOVE("remove")
 }
 
+enum class RoleEum {
+    ADMIN,
+    USER
+}
+
+// https://gksdudrb922.tistory.com/217
+@Entity
+class Role(
+    @Id
+    @Column(length = 255, nullable = false)
+    @Enumerated(EnumType.STRING)
+    val id: RoleEum
+) : JPABaseEntity()
+
+@Entity
+class UserRole(
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "BINARY(16)")
+    val id: UUID? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    var user: UserEntity,
+
+
+    @Column(name = "role_id", length = 255, nullable = false)
+    @Enumerated(EnumType.STRING)
+    val roleId: RoleEum,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "role_id",
+        updatable = false,
+        insertable = false,
+        foreignKey = ForeignKey(name = "fk_user_role_role")
+    )
+    var role: Role? = null
+) : JPABaseEntity()
 
 @Entity
 class UserEntity(
@@ -34,7 +77,18 @@ class UserEntity(
     var status: UserStatus,
 
     @Column(length = 255)
-    var nickName: String
+    var nickName: String,
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.PERSIST], orphanRemoval = true)
+    var userRoles: Set<UserRole> = HashSet()
 
 ) : JPABaseEntity() {
+    init {
+        this.userRoles = setOf(
+            UserRole(user = this, roleId = RoleEum.USER)
+        )
+    }
+
+    val roles: List<String>
+        get() = this.userRoles.map { it.roleId.toString() }
 }
