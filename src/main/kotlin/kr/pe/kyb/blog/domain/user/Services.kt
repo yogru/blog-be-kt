@@ -1,9 +1,5 @@
-package kr.pe.kyb.blog.domain.user.services
+package kr.pe.kyb.blog.domain.user
 
-import kr.pe.kyb.blog.domain.user.CreateFailExistEmail
-import kr.pe.kyb.blog.domain.user.UserEntity
-import kr.pe.kyb.blog.domain.user.UserStatus
-import kr.pe.kyb.blog.domain.user.UserRepository
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.infra.logger.Log
@@ -26,11 +22,6 @@ data class CreateUserDto(
 )
 
 
-interface JoinServiceInterface {
-    fun join(user: CreateUserDto): UUID
-}
-
-
 @Service
 class CustomUserDetailsService(
     val userRepository: UserRepository,
@@ -38,15 +29,17 @@ class CustomUserDetailsService(
 ) : UserDetailsService {
     companion object : Log {}
 
-    override fun loadUserByUsername(username: String): UserDetails {
-        val userEntity = this.userRepository.findOneByAccount(username)
-        userEntity ?: throw UsernameNotFoundException("해당 유저 $username 찾을 수 없습니다.")
-        return User.builder()
-            .username(username)
-            .password(passwordEncoder.encode(userEntity.password))
-            .roles(*userEntity.roles.toTypedArray())
-            .build()
-    }
+    override fun loadUserByUsername(username: String): UserDetails =
+        this.userRepository.findOneByAccount(username).let {
+            it ?: throw UsernameNotFoundException("해당 유저 $username 찾을 수 없습니다.")
+        }.let {
+            User.builder()
+                .username(username)
+                .password(it.password)
+                .roles(*it.roles.toTypedArray())
+                .build()
+        }
+
 }
 
 @Service
@@ -54,33 +47,37 @@ class CustomUserDetailsService(
 class JoinService(
     val jwtTokenProvider: JwtTokenProvider,
     val userRepository: UserRepository,
-    val authenticationManagerBuilder: AuthenticationManagerBuilder
-) : JoinServiceInterface {
+    val authenticationManagerBuilder: AuthenticationManagerBuilder,
+    val passwordEncoder: PasswordEncoder
+) {
     companion object : Log {}
 
     @Transactional()
-    override fun join(user: CreateUserDto): UUID {
-        this.userRepository.findOneByAccount(user.email)?.let {
-            throw CreateFailExistEmail(it.account)
+    fun join(user: CreateUserDto): UUID =
+        this.userRepository.findOneByAccount(user.email).also {
+            it != null && throw CreateFailExistEmail(it.account)
+        }.let {
+            UserEntity(
+                account = user.email,
+                password = passwordEncoder.encode(user.password),
+                status = UserStatus.SIGN,
+                nickName = user.nickName,
+            ).also { userRepository.save(it) }
+        }.let {
+            it.id!!
         }
-        return UserEntity(
-            account = user.email,
-            password = user.password,
-            status = UserStatus.SIGN,
-            nickName = user.nickName,
-        ).also { userRepository.save(it) }
-            .let { it.id!! }
-    }
 
     @Transactional()
-    fun login(account: String, password: String): JwtToken {
-        val authenticationToken = UsernamePasswordAuthenticationToken(account, password)
-        // 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
-        // authenticate 매서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행
-        val authentication: Authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken)
-        logger().info(authentication.authorities.toString())
-        return jwtTokenProvider.generateToken(authentication)
-    }
+    fun login(account: String, password: String): JwtToken =
+        this.userRepository.findOneByAccount(account).let {
+            it ?: throw UsernameNotFoundException("해당 유저 $account 찾을 수 없습니다.")
+        }.let {
+            !passwordEncoder.matches(password, it.password) && throw RuntimeException("일치하지 않는 패스워드")
 
+            authenticationManagerBuilder.getObject()
+                .authenticate(UsernamePasswordAuthenticationToken(account, password))
+        }.let {
+            jwtTokenProvider.generateToken(it)
+        }
 
 }

@@ -1,10 +1,8 @@
-package kr.pe.kyb.blog.domain.controller
+package kr.pe.kyb.blog.domain.user
 
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
-import kr.pe.kyb.blog.domain.user.services.CreateUserDto
-import kr.pe.kyb.blog.domain.user.services.JoinService
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.logger.Log
@@ -37,7 +35,6 @@ data class LoginUserRequest(
 class UserController(
     val joinService: JoinService
 ) {
-
     companion object : Log {}
 
     @PostMapping("/user/join")

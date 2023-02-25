@@ -1,6 +1,5 @@
 package kr.pe.kyb.blog.user.unit
 
-import jakarta.transaction.Transactional
 import kr.pe.kyb.blog.domain.user.UserEntity
 import kr.pe.kyb.blog.domain.user.UserStatus
 import kr.pe.kyb.blog.domain.user.UserRepository
@@ -8,8 +7,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.transaction.annotation.Transactional
 
-@Transactional()
+
+@Transactional(readOnly = true)
 @SpringBootTest
 class UserRepositoryTest {
 
@@ -22,7 +23,6 @@ class UserRepositoryTest {
     fun createUser() {
         val account = "test@gmail.com"
         val password = "1q2w3e4r1!"
-        val status = "wait"
         val nickName = "kyb"
 
         val createdUser = this.userRepository.save(

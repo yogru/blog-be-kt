@@ -14,5 +14,12 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+    defer-datasource-initialization: true
 
+  sql:
+    init:
+      data-locations: classpath:data.sql
+      mode: always
 
+jwt:
+  secret-key: 46JbihTestF0NoY174+=s4Sp90NtaUhbFzHe1t+LDwZ95jQ=

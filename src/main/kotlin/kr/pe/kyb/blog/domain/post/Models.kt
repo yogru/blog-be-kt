@@ -43,12 +43,6 @@ class PostTag(
 
 @Entity
 class Post(
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(columnDefinition = "BINARY(16)")
-    val id: UUID? = null,
-
     @Column(columnDefinition = "BINARY(16)", nullable = false)
     var userId: UUID,
 
@@ -58,16 +52,26 @@ class Post(
     @Column(length = 255, nullable = false)
     var body: String,
 
+    tags: List<String>
+) : JPABaseEntity() {
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "BINARY(16)")
+    var id: UUID? = null
+
     @Column()
-    var deleted: Boolean = false,
+    var deleted: Boolean = false
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
     var postTags: Set<PostTag> = HashSet()
 
-) : JPABaseEntity() {
     init {
-        postTags = hashSetOf(PostTag(post = this, tagId = "All"))
+        id = null
+        deleted = false
+        postTags = tags.map { PostTag(tagId = it, post = this) }.toSet()
     }
+
 }
 
 

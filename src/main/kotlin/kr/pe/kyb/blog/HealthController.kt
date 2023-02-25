@@ -1,4 +1,4 @@
-package kr.pe.kyb.blog.controller;
+package kr.pe.kyb.blog;
 
 
 import kr.pe.kyb.blog.infra.anotation.RestV2
