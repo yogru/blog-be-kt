@@ -1,8 +1,8 @@
 package kr.pe.kyb.blog.domain.user.services
 
 import kr.pe.kyb.blog.domain.user.CreateFailExistEmail
-import kr.pe.kyb.blog.domain.user.models.UserEntity
-import kr.pe.kyb.blog.domain.user.models.UserStatus
+import kr.pe.kyb.blog.domain.user.UserEntity
+import kr.pe.kyb.blog.domain.user.UserStatus
 import kr.pe.kyb.blog.domain.user.UserRepository
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider

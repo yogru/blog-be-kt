@@ -1,8 +1,8 @@
 package kr.pe.kyb.blog.user.unit
 
 import jakarta.transaction.Transactional
-import kr.pe.kyb.blog.domain.user.models.UserEntity
-import kr.pe.kyb.blog.domain.user.models.UserStatus
+import kr.pe.kyb.blog.domain.user.UserEntity
+import kr.pe.kyb.blog.domain.user.UserStatus
 import kr.pe.kyb.blog.domain.user.UserRepository
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

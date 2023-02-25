@@ -1,4 +1,4 @@
-package kr.pe.kyb.blog.domain.user.models
+package kr.pe.kyb.blog.domain.user
 
 import jakarta.persistence.*
 import kr.pe.kyb.blog.infra.persistence.JPABaseEntity
