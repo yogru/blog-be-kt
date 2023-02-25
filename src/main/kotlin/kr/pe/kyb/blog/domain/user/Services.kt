@@ -2,9 +2,8 @@ package kr.pe.kyb.blog.domain.user.services
 
 import kr.pe.kyb.blog.domain.user.CreateFailExistEmail
 import kr.pe.kyb.blog.domain.user.models.UserEntity
-import kr.pe.kyb.blog.domain.user.models.UserRole
 import kr.pe.kyb.blog.domain.user.models.UserStatus
-import kr.pe.kyb.blog.domain.user.repositories.UserRepository
+import kr.pe.kyb.blog.domain.user.UserRepository
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.infra.logger.Log
@@ -19,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
-import kotlin.collections.HashSet
 
 data class CreateUserDto(
     val email: String,
@@ -43,9 +41,6 @@ class CustomUserDetailsService(
     override fun loadUserByUsername(username: String): UserDetails {
         val userEntity = this.userRepository.findOneByAccount(username)
         userEntity ?: throw UsernameNotFoundException("해당 유저 $username 찾을 수 없습니다.")
-        logger().info("아 시바")
-        var r = userEntity.roles.toTypedArray()
-        logger().info(r.toString())
         return User.builder()
             .username(username)
             .password(passwordEncoder.encode(userEntity.password))
