@@ -3,6 +3,7 @@ package kr.pe.kyb.blog.domain.post
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
+import kotlin.jvm.optionals.getOrNull
 
 data class CreatePostDto(
     val userId: UUID,
@@ -31,7 +32,11 @@ class PostService(
     @Transactional
     fun upsertTag(tagName: String) = tagRepository.upsert(tagName)
 
-    @Transactional
     fun getAllTags(): Set<String> = tagRepository.findAll().map { it.id }.toSet()
 
+    @OptIn(ExperimentalStdlibApi::class)
+    fun deleteTag(tagName: String) =
+        tagRepository.findById(tagName).getOrNull().let { it ?: throw NotFoundTag(tagName) }.also {
+            if (tagName == "All") throw UnremovableTagException("All") else tagRepository.deleteById(tagName)
+        }
 }
