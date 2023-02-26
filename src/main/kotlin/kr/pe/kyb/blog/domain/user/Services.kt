@@ -25,20 +25,20 @@ data class CreateUserDto(
 
 @Service
 class CustomUserDetailsService(
-    val userRepository: UserRepository,
-    val passwordEncoder: PasswordEncoder
+    val userRepository: UserRepository
 ) : UserDetailsService {
     companion object : Log {}
 
-    override fun loadUserByUsername(username: String): UserDetails = userRepository.findOneByAccount(username)
-        .let { it ?: throw UsernameNotFoundException("해당 유저 $username 찾을 수 없습니다.") }
-        .let {
-            User.builder()
-                .username(username)
-                .password(it.password)
-                .roles(*it.roles.toTypedArray())
-                .build()
-        }
+    override fun loadUserByUsername(username: String): UserDetails =
+        userRepository.findOneById(UUID.fromString(username))
+            .let { it ?: throw UsernameNotFoundException("해당 유저 $username 찾을 수 없습니다.") }
+            .let {
+                User.builder()
+                    .username(username)
+                    .password(it.password)
+                    .roles(*it.roles.toTypedArray())
+                    .build()
+            }
 }
 
 
@@ -48,10 +48,11 @@ class UserInternalService(
 ) {
     fun findByAccount(account: String): UserEntity =
         userRepository.findOneByAccount(account).let { it ?: throw NotFoundUser(account) }
-    fun findByCurrentUserDetail(): UserEntity = SecurityContextHolder.getContext().authentication.principal
-        .let { if (it is UserDetails) it.username else null }
-        .let { it ?: throw NotFoundUserDetail() }
-        .let { findByAccount(it) }
+
+//    fun findByCurrentUserDetail(): UserEntity = SecurityContextHolder.getContext().authentication.principal
+//        .let { if (it is UserDetails) it.username else null }
+//        .let { it ?: throw NotFoundUserDetail() }
+//        .let { findByAccount(it) }
 }
 
 
@@ -84,9 +85,10 @@ class JoinService(
         .let { it ?: throw UsernameNotFoundException("해당 유저 $account 찾을 수 없습니다.") }
         .also { !passwordEncoder.matches(password, it.password) && throw RuntimeException("일치하지 않는 패스워드") }
         .let {
+            logger().info(account)
             jwtTokenProvider.generateToken(
                 authenticationManagerBuilder.getObject()
-                    .authenticate(UsernamePasswordAuthenticationToken(account, password))
+                    .authenticate(UsernamePasswordAuthenticationToken(it.id!!.toString(), password))
             )
         }
 
