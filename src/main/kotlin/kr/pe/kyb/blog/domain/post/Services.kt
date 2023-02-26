@@ -15,9 +15,11 @@ data class CreatePostDto(
 @Service
 @Transactional(readOnly = true)
 class PostService(
-    val postRepository: PostRepository
+    val postRepository: PostRepository,
+    val tagRepository: TagRepository
 ) {
 
+    @Transactional()
     fun createPost(dto: CreatePostDto): UUID = Post(
         userId = dto.userId,
         title = dto.title,
@@ -26,5 +28,10 @@ class PostService(
     ).also { postRepository.save(it) }
         .let { it.id!! }
 
+    @Transactional
+    fun upsertTag(tagName: String) = tagRepository.upsert(tagName)
+
+    @Transactional
+    fun getAllTags(): Set<String> = tagRepository.findAll().map { it.id }.toSet()
 
 }

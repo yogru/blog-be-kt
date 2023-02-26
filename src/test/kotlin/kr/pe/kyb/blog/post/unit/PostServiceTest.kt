@@ -29,4 +29,19 @@ class PostServiceTest {
             .createPost(CreatePostDto(userId = userId, title = "title", body = "body", listOf("All")))
         Assertions.assertNotNull(ret)
     }
+
+
+    @Test
+    @Transactional
+    fun upsertTag() {
+        var tagNames = listOf("All", "리액트", "코틀린", "데이터베이스")
+        for (tagName in tagNames) {
+            postService.upsertTag(tagName)
+        }
+        val foundTags = postService.getAllTags()
+        Assertions.assertEquals(foundTags.size, 4)
+        Assertions.assertEquals(foundTags.sorted(), tagNames.sorted())
+    }
+
+
 }
