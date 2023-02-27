@@ -28,6 +28,11 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
     implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
+    // rest template..
+    implementation("org.apache.httpcomponents:httpcore:4.4.15")
+    implementation("org.apache.httpcomponents:httpclient:4.5.13")
+
+
 
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")

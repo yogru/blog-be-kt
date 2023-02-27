@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.logger.Log
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import java.util.UUID
@@ -33,20 +34,25 @@ data class LoginUserRequest(
 
 @RestV2
 class UserController(
-    val joinService: JoinService
+    val joinService: JoinService,
+    val userManageService: UserManageService
 ) {
     companion object : Log {}
 
-    @PostMapping("/user/join")
-    fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID {
-        return this.joinService.join(
-            CreateUserDto(
-                email = req.email,
-                password = req.password,
-                nickName = req.nickName
-            )
-        )
-    }
+
+    @GetMapping("/user")
+    fun getUser() = userManageService.getCurrentUser()
+
+//    @PostMapping("/user/join")
+//    fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID {
+//        return this.joinService.join(
+//            CreateUserDto(
+//                email = req.email,
+//                password = req.password,
+//                nickName = req.nickName
+//            )
+//        )
+//    }
 
     @PostMapping("/user/login")
     fun loginUser(@RequestBody @Valid req: LoginUserRequest): JwtToken {

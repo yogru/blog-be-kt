@@ -2,12 +2,19 @@ package kr.pe.kyb.blog.mock.data
 
 import kr.pe.kyb.blog.domain.user.CreateUserDto
 import kr.pe.kyb.blog.domain.user.JoinService
-import kr.pe.kyb.blog.domain.user.UserEntity
 import java.util.UUID
 
-fun createTestUser(
+fun createMockTestUser(
     joinService: JoinService,
-    email: String = "test",
+    id: UUID,
+    email: String = "test@kybtest.com",
     password: String = "test1q2w3e4r1!",
     nickName: String = "testUser"
-): UUID = joinService.join(CreateUserDto(email, password, nickName))
+): UUID = joinService.join(
+    CreateUserDto(
+        id = id.toString(),
+        email = email,
+        password = password,
+        nickName = nickName
+    )
+)

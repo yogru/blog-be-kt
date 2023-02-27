@@ -41,16 +41,33 @@ class PostTag(
 
     ) : JPABaseEntity()
 
+
+@Entity
+class PostUserValue(
+    @Id
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(columnDefinition = "BINARY(16)")
+    val id: UUID,
+
+    @Column(length = 255, nullable = false)
+    val account: String,
+
+    @Column(length = 255, nullable = false)
+    val nickName: String,
+) : JPABaseEntity()
+
 @Entity
 class Post(
-    @Column(columnDefinition = "BINARY(16)", nullable = false)
-    var userId: UUID,
-
     @Column(length = 255, nullable = false)
     var title: String,
 
     @Column(length = 255, nullable = false)
     var body: String,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    val user: PostUserValue,
 
     tags: List<String>
 ) : JPABaseEntity() {
@@ -65,6 +82,7 @@ class Post(
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
     var postTags: Set<PostTag> = HashSet()
+
 
     init {
         id = null
@@ -102,9 +120,7 @@ class SeriesPost(
     )
     var post: Post? = null
 
-) : JPABaseEntity() {
-
-}
+) : JPABaseEntity() {}
 
 
 @Entity

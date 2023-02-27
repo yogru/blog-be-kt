@@ -3,10 +3,10 @@ package kr.pe.kyb.blog.domain.user
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.infra.logger.Log
+import kr.pe.kyb.blog.infra.persistence.EntityManagerWrapper
+import kr.pe.kyb.blog.infra.spring.MySpringUtils
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -14,14 +14,24 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 data class CreateUserDto(
+    var id: String? = null, // 테스트 편의성 때문에 처음부터 uuid 정해진 객체를 만들어야할 필요가 있다.
     val email: String,
     val password: String,
     val nickName: String
 )
 
+data class UserDto(
+    val id: UUID,
+    val email: String,
+    val nickName: String,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
+    val status: UserStatus
+)
 
 @Service
 class CustomUserDetailsService(
@@ -43,16 +53,24 @@ class CustomUserDetailsService(
 
 
 @Service
-class UserInternalService(
+class UserManageService(
     val userRepository: UserRepository
 ) {
-    fun findByAccount(account: String): UserEntity =
-        userRepository.findOneByAccount(account).let { it ?: throw NotFoundUser(account) }
 
-//    fun findByCurrentUserDetail(): UserEntity = SecurityContextHolder.getContext().authentication.principal
-//        .let { if (it is UserDetails) it.username else null }
-//        .let { it ?: throw NotFoundUserDetail() }
-//        .let { findByAccount(it) }
+
+    fun getCurrentUser(): UserDto =
+        userRepository.findOneById(MySpringUtils.currentUserName)
+            .let { it ?: throw NotFoundCurrentUser() }
+            .let {
+                UserDto(
+                    id = it.id!!,
+                    email = it.account,
+                    createdAt = it.createdAt,
+                    updatedAt = it.updatedAt,
+                    nickName = it.nickName,
+                    status = it.status
+                )
+            }
 }
 
 
@@ -62,7 +80,8 @@ class JoinService(
     val jwtTokenProvider: JwtTokenProvider,
     val userRepository: UserRepository,
     val authenticationManagerBuilder: AuthenticationManagerBuilder,
-    val passwordEncoder: PasswordEncoder
+    val passwordEncoder: PasswordEncoder,
+    val em: EntityManagerWrapper
 ) {
     companion object : Log {}
 
@@ -71,13 +90,14 @@ class JoinService(
         .let { it != null && throw CreateFailExistEmail(it.account) }
         .let {
             UserEntity(
+                id = if (user.id != null) UUID.fromString(user.id) else null,
                 account = user.email,
                 password = passwordEncoder.encode(user.password),
                 status = UserStatus.SIGN,
                 nickName = user.nickName,
             )
         }
-        .let { userRepository.save(it) }
+        .let { em.make(it) }
         .let { it.id!! }
 
     @Transactional()

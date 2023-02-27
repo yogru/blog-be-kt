@@ -14,3 +14,5 @@ class CreateFail : ServiceException("영속 계층 유저 생성 실패")
 class NotFoundUser(email: String) : ServiceException("${email}를 찾을 수 없습니다", HttpErrorRes.NotFound)
 
 class NotFoundUserDetail : ServiceException("현재 유저를 찾을 수 없습니다", HttpErrorRes.NotFound)
+
+class NotFoundCurrentUser : ServiceException("현재 유저를 찾을 수 없습니다.", HttpErrorRes.NotFound)

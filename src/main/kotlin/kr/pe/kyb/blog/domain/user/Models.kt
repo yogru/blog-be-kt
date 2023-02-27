@@ -57,11 +57,7 @@ class UserRole(
 
 @Entity
 class UserEntity(
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(columnDefinition = "BINARY(16)")
-    val id: UUID? = null,
+    id: UUID? = null,
 
     @Column(length = 255, unique = true, nullable = false)
     var account: String,
@@ -75,12 +71,17 @@ class UserEntity(
 
     @Column(length = 255)
     var nickName: String,
+) : JPABaseEntity() {
+
+    @Id
+    @Column(columnDefinition = "BINARY(16)")
+    val id: UUID
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.PERSIST], orphanRemoval = true)
     var userRoles: Set<UserRole> = HashSet()
 
-) : JPABaseEntity() {
     init {
+        this.id = id ?: UUID.randomUUID()
         this.userRoles = setOf(
             UserRole(user = this, roleId = RoleEum.USER)
         )

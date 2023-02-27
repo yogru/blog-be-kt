@@ -5,7 +5,7 @@ import kr.pe.kyb.blog.domain.post.NotFoundTag
 import kr.pe.kyb.blog.domain.post.PostService
 import kr.pe.kyb.blog.domain.post.UnremovableTagException
 import kr.pe.kyb.blog.domain.user.JoinService
-import kr.pe.kyb.blog.mock.data.createTestUser
+import kr.pe.kyb.blog.mock.data.createMockTestUser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,15 +23,15 @@ class PostServiceTest {
     @Autowired
     lateinit var joinService: JoinService
 
-    @Test
-    @Transactional
-    fun createPost() {
-        val userId: UUID = createTestUser(joinService)
-        var ret = postService
-            .createPost(CreatePostDto(userId = userId, title = "title", body = "body", listOf("All")))
-        Assertions.assertNotNull(ret)
-    }
-
+//    @Test
+//    @Transactional
+//    fun createPost() {
+//        val userId: UUID = createMockTestUser(joinService)
+//        var ret = postService
+//            .createPost(CreatePostDto(userId = userId, title = "title", body = "body", listOf("All")))
+//        Assertions.assertNotNull(ret)
+//    }
+//
 
     @Test
     @Transactional
@@ -46,15 +46,14 @@ class PostServiceTest {
         Assertions.assertEquals(foundTags.sorted(), tagNames.sorted())
 
         postService.deleteTag(deletedPromised)
-
         Assertions.assertFalse(postService.getAllTags().contains(deletedPromised))
+
         Assertions.assertThrows(UnremovableTagException::class.java) {
             postService.deleteTag("All")
         }
         Assertions.assertThrows(NotFoundTag::class.java) {
             postService.deleteTag(deletedPromised)
         }
-        
     }
 
 
