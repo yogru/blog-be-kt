@@ -1,8 +1,6 @@
 package kr.pe.kyb.blog.user.e2e
 
-import kr.pe.kyb.blog.domain.user.CurrentUserResponse
-import kr.pe.kyb.blog.domain.user.JoinService
-import kr.pe.kyb.blog.domain.user.LoginUserRequest
+import kr.pe.kyb.blog.domain.user.*
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
@@ -66,6 +64,21 @@ class User {
         )
         Assertions.assertNotNull(res.accessToken)
         Assertions.assertTrue(jwtTokenProvider.validateToken(res.accessToken))
+    }
+
+    @Test
+    fun joinUser() {
+        val newEmail = "kybdev@kyb.pe.kr"
+        val newPassword = "1Adkljvio23uo23nsd)!$#@mnz!"
+        val nickName = "kybdev"
+
+        var res = mockMvcWrapper.post(
+            JoinUserResponse::class.java,
+            "/api/v2/user/join",
+            JoinUserRequest(email = newEmail, password = newPassword, nickName = nickName)
+        )
+        Assertions.assertNotNull(res)
+        Assertions.assertNotNull(res.userId)
     }
 
 }
