@@ -27,7 +27,7 @@ data class WithUser(
 class MockMvcWrapper(
     private val objectMapper: ObjectMapper,
     private val jwtMock: JwtMock,
-    private  val mockMvc: MockMvc,
+    private val mockMvc: MockMvc,
 //    wac: WebApplicationContext
 ) {
 //    private val mockMvc: MockMvc =
@@ -58,5 +58,19 @@ class MockMvcWrapper(
         return objectMapper.readValue(mockRet.response.contentAsString, clazz)
     }
 
+    fun <T, U> post(retClazz: Class<U>, url: String, body: T, withUser: WithUser? = null): U {
+        var builders = setUpAccessKey(
+            MockMvcRequestBuilders
+                .post(url)
+                .content(objectMapper.writeValueAsString(body))
+                .contentType(MediaType.APPLICATION_JSON),
+            withUser
+        )
+
+        var mockRet = mockMvc.perform(builders)
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        return objectMapper.readValue(mockRet.response.contentAsString, retClazz)
+    }
 
 }
