@@ -1,9 +1,6 @@
 package kr.pe.kyb.blog.user.unit
 
-import kr.pe.kyb.blog.domain.user.JoinService
-import kr.pe.kyb.blog.domain.user.UserEntity
-import kr.pe.kyb.blog.domain.user.UserStatus
-import kr.pe.kyb.blog.domain.user.UserRepository
+import kr.pe.kyb.blog.domain.user.*
 import kr.pe.kyb.blog.mock.data.createMockTestUser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -30,6 +27,9 @@ class UserRepositoryTest {
     @Autowired
     lateinit var joinService: JoinService
 
+    @Autowired
+    lateinit var userManageService: UserManageService
+
     @BeforeEach
     @Transactional
     fun createTestUser() {
@@ -40,9 +40,9 @@ class UserRepositoryTest {
     @Transactional
     @WithUserDetails(value = uuidString, setupBefore = TestExecutionEvent.TEST_EXECUTION)
     fun checkAuthUser() {
-        var ret = userRepository.findOneById(UUID.fromString(uuidString))
-        Assertions.assertNotNull(ret)
-        Assertions.assertNotNull(ret?.id)
+        var currentUser = userManageService.getCurrentUser()
+        Assertions.assertEquals(currentUser.id.toString(), uuidString)
+
     }
 
 }
