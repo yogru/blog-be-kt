@@ -37,18 +37,13 @@ class JwtTokenProvider {
             return Keys.hmacShaKeyFor(keyBytes)
         }
 
-
-    // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
-    fun generateToken(authentication: Authentication): JwtToken {
-        // 권한 가져오기
-        val authorities: String = authentication.authorities.joinToString(",") {
-            it.authority
-        }
+    fun generateToken(username: String, roles: List<String>): JwtToken {
+        val authorities = roles.joinToString(",")
         val now: Long = Date().time
-        // Access Token 생성
+
         val accessTokenExpiresIn = Date(now + 86400000)
         val accessToken: String = Jwts.builder()
-            .setSubject(authentication.name)
+            .setSubject(username)
             .claim("auth", authorities)
             .setExpiration(accessTokenExpiresIn)
             .signWith(this.key, SignatureAlgorithm.HS256)
@@ -64,6 +59,14 @@ class JwtTokenProvider {
             grantType = "Bearer",
             accessToken = accessToken,
             refreshToken = refreshToken
+        )
+    }
+
+    // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
+    fun generateToken(authentication: Authentication): JwtToken {
+        return this.generateToken(
+            username = authentication.name,
+            roles = authentication.authorities.map { it.toString() }
         )
     }
 

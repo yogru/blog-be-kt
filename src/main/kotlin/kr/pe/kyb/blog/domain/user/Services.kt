@@ -5,17 +5,20 @@ import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.infra.logger.Log
 import kr.pe.kyb.blog.infra.persistence.EntityManagerWrapper
 import kr.pe.kyb.blog.infra.spring.MySpringUtils
+import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
+
 
 data class CreateUserDto(
     var id: String? = null, // 테스트 편의성 때문에 처음부터 uuid 정해진 객체를 만들어야할 필요가 있다.
@@ -33,24 +36,37 @@ data class UserDto(
     val status: UserStatus
 )
 
-@Service
-class CustomUserDetailsService(
-    val userRepository: UserRepository
-) : UserDetailsService {
-    companion object : Log {}
 
-    override fun loadUserByUsername(username: String): UserDetails =
-        userRepository.findOneById(UUID.fromString(username))
-            .let { it ?: throw UsernameNotFoundException("해당 유저 $username 찾을 수 없습니다.") }
+@Component
+class CustomAuthenticationProvider(
+    val passwordEncoder: PasswordEncoder,
+    val userRepository: UserRepository
+) : AuthenticationProvider {
+
+    override fun authenticate(authentication: Authentication): Authentication? {
+        val name: String = authentication.name
+        val password: String = authentication.credentials.toString()
+        val userDetail = userRepository.findOneById(UUID.fromString(name))
+            .let { it ?: throw UsernameNotFoundException("해당 유저 $name 찾을 수 없습니다.") }
             .let {
                 User.builder()
-                    .username(username)
+                    .username(name)
                     .password(it.password)
                     .roles(*it.roles.toTypedArray())
                     .build()
             }
-}
+        return if (password != null && passwordEncoder.matches(password, userDetail.password)) {
+            UsernamePasswordAuthenticationToken(name, password, userDetail.authorities)
+        } else {
+            null
+        }
+    }
 
+    override fun supports(authentication: Class<*>?): Boolean {
+        return UsernamePasswordAuthenticationToken::class.java
+            .isAssignableFrom(authentication)
+    }
+}
 
 @Service
 class UserManageService(
@@ -79,7 +95,6 @@ class UserManageService(
 class JoinService(
     val jwtTokenProvider: JwtTokenProvider,
     val userRepository: UserRepository,
-    val authenticationManagerBuilder: AuthenticationManagerBuilder,
     val passwordEncoder: PasswordEncoder,
     val em: EntityManagerWrapper
 ) {
@@ -104,12 +119,6 @@ class JoinService(
     fun login(account: String, password: String): JwtToken = userRepository.findOneByAccount(account)
         .let { it ?: throw UsernameNotFoundException("해당 유저 $account 찾을 수 없습니다.") }
         .also { !passwordEncoder.matches(password, it.password) && throw RuntimeException("일치하지 않는 패스워드") }
-        .let {
-            logger().info(account)
-            jwtTokenProvider.generateToken(
-                authenticationManagerBuilder.getObject()
-                    .authenticate(UsernamePasswordAuthenticationToken(it.id!!.toString(), password))
-            )
-        }
+        .let { jwtTokenProvider.generateToken(username = it.id.toString(), roles = it.roles) }
 
 }

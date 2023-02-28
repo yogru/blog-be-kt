@@ -9,6 +9,7 @@ import kr.pe.kyb.blog.infra.logger.Log
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import java.time.LocalDateTime
 import java.util.UUID
 
 data class JoinUserRequest(
@@ -32,6 +33,12 @@ data class LoginUserRequest(
     val password: String,
 )
 
+
+data class CurrentUserResponse(
+    val user: UserDto
+)
+
+
 @RestV2
 class UserController(
     val joinService: JoinService,
@@ -41,18 +48,18 @@ class UserController(
 
 
     @GetMapping("/user")
-    fun getUser() = userManageService.getCurrentUser()
+    fun getUser() = CurrentUserResponse(user = userManageService.getCurrentUser())
 
-//    @PostMapping("/user/join")
-//    fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID {
-//        return this.joinService.join(
-//            CreateUserDto(
-//                email = req.email,
-//                password = req.password,
-//                nickName = req.nickName
-//            )
-//        )
-//    }
+    @PostMapping("/user/join")
+    fun joinUser(@RequestBody @Valid req: JoinUserRequest): UUID {
+        return this.joinService.join(
+            CreateUserDto(
+                email = req.email,
+                password = req.password,
+                nickName = req.nickName
+            )
+        )
+    }
 
     @PostMapping("/user/login")
     fun loginUser(@RequestBody @Valid req: LoginUserRequest): JwtToken {
