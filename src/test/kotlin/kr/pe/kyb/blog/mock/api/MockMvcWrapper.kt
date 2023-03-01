@@ -1,37 +1,29 @@
 package kr.pe.kyb.blog.mock.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import kr.pe.kyb.blog.mock.jwt.JwtMock
+import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+
 import org.springframework.http.MediaType
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.stereotype.Component
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
-import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import org.springframework.test.web.servlet.setup.MockMvcConfigurer
-import org.springframework.web.context.WebApplicationContext
 import java.util.*
 
 
 data class WithUser(
     val id: UUID,
-    val password: String
+    val roles: List<String> = listOf("USER")
 )
 
 @Component
 class MockMvcWrapper(
     private val objectMapper: ObjectMapper,
-    private val jwtMock: JwtMock,
+    private val jwtTokenProvider: JwtTokenProvider,
     private val mockMvc: MockMvc,
-//    wac: WebApplicationContext
 ) {
-//    private val mockMvc: MockMvc =
-//        MockMvcBuilders.webAppContextSetup(wac).apply<DefaultMockMvcBuilder?>(springSecurity()).build()
 
 
     private fun setUpAccessKey(
@@ -39,7 +31,7 @@ class MockMvcWrapper(
         withUser: WithUser?
     ): MockHttpServletRequestBuilder {
         if (withUser != null) {
-            val token = jwtMock.genToken(withUser.id, withUser.password)
+            val token = jwtTokenProvider.generateToken(withUser.id.toString(), withUser.roles)
             return build.header("authentication", "Bearer " + token.accessToken)
         }
         return build

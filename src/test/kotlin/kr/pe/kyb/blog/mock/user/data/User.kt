@@ -1,4 +1,4 @@
-package kr.pe.kyb.blog.mock.data
+package kr.pe.kyb.blog.mock.user.data
 
 import kr.pe.kyb.blog.domain.user.CreateUserDto
 import kr.pe.kyb.blog.domain.user.JoinService

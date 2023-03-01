@@ -1,11 +1,13 @@
 package kr.pe.kyb.blog.user.e2e
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import kr.pe.kyb.blog.domain.user.*
 import kr.pe.kyb.blog.infra.jwt.JwtToken
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
 import kr.pe.kyb.blog.mock.api.WithUser
-import kr.pe.kyb.blog.mock.data.createMockTestUser
+import kr.pe.kyb.blog.mock.user.data.createMockTestUser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -34,6 +36,9 @@ class User {
     @Autowired
     lateinit var jwtTokenProvider: JwtTokenProvider
 
+
+
+
     @BeforeEach
     @Transactional
     fun createTestUser() {
@@ -47,10 +52,7 @@ class User {
         var res = mockMvcWrapper.get(
             CurrentUserResponse::class.java,
             "/api/v2/user",
-            WithUser(
-                id = UUID.fromString(uuidString),
-                password = userPassword
-            )
+            WithUser(id = UUID.fromString(uuidString))
         )
         Assertions.assertEquals(res.user.id.toString(), uuidString)
     }

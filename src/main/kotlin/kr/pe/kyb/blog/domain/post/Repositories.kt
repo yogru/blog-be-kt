@@ -3,7 +3,6 @@ package kr.pe.kyb.blog.domain.post
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 
@@ -11,7 +10,6 @@ import java.util.*
 interface PostRepository : JpaRepository<Post, UUID> {
 
 
-    @Transactional
     @Modifying
     @Query(
         value = "INSERT INTO tag(id, created_at, updated_at) VALUES(:tagName, :createdAt, :updatedAt) " +
@@ -29,9 +27,10 @@ interface PostRepository : JpaRepository<Post, UUID> {
     @Query(value = "SELECT t FROM Tag t WHERE t.id =:id")
     fun findTagById(id: String): Tag?
 
+    @Modifying
     @Query(value = "DELETE FROM Tag t WHERE t.id =:id")
     fun deleteTagById(id: String)
 
-    @Query(value = "SELECT u FROM PostUserValue u WHERE u.id = :id ")
-    fun findUserValueById(id: UUID): PostUserValue?
+    @Query(value = "SELECT u FROM PostUserValue u WHERE u.id =:id ")
+    fun findOneUserValueById(id: UUID): PostUserValue?
 }

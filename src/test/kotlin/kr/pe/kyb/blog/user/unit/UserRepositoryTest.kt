@@ -1,7 +1,7 @@
 package kr.pe.kyb.blog.user.unit
 
 import kr.pe.kyb.blog.domain.user.*
-import kr.pe.kyb.blog.mock.data.createMockTestUser
+import kr.pe.kyb.blog.mock.user.data.createMockTestUser
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach

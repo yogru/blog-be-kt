@@ -67,7 +67,7 @@ class Post(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    val user: PostUserValue,
+    val writer: PostUserValue,
 
     tags: List<String>
 ) : JPABaseEntity() {
@@ -90,6 +90,17 @@ class Post(
         postTags = tags.map { PostTag(tagId = it, post = this) }.toSet()
     }
 
+    val tags: Set<String>
+        get() = postTags.map { it.tagId }.toSet()
+
+    val writerId: UUID
+        get() = writer.id
+
+    val writerName: String
+        get() = writer.nickName
+
+    val writerEmail: String
+        get() = writer.account
 }
 
 
