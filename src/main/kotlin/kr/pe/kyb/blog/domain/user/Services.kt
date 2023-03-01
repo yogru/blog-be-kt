@@ -100,7 +100,7 @@ class JoinService(
 ) {
     companion object : Log {}
 
-    @Transactional()
+    @Transactional
     fun join(user: CreateUserDto): UUID = userRepository.findOneByAccount(user.email)
         .let { it != null && throw CreateFailExistEmail(it.account) }
         .let {
@@ -115,7 +115,7 @@ class JoinService(
         .let { em.make(it) }
         .let { it.id!! }
 
-    @Transactional()
+    @Transactional
     fun login(account: String, password: String): JwtToken = userRepository.findOneByAccount(account)
         .let { it ?: throw UsernameNotFoundException("해당 유저 $account 찾을 수 없습니다.") }
         .also { !passwordEncoder.matches(password, it.password) && throw RuntimeException("일치하지 않는 패스워드") }

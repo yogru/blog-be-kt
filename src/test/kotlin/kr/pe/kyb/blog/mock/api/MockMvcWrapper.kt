@@ -2,10 +2,8 @@ package kr.pe.kyb.blog.mock.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -18,7 +16,7 @@ data class WithUser(
     val roles: List<String> = listOf("USER")
 )
 
-@Component
+
 class MockMvcWrapper(
     private val objectMapper: ObjectMapper,
     private val jwtTokenProvider: JwtTokenProvider,

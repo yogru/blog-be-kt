@@ -1,5 +1,7 @@
 package kr.pe.kyb.blog.domain.post
 
+import jakarta.persistence.EntityManager
+import jakarta.persistence.PersistenceContext
 import kr.pe.kyb.blog.domain.post.infra.PostUserRepositoryInterface
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,7 +23,6 @@ data class CreatedPostDto(
     val writerEmail: String
 )
 
-
 @Service
 @Transactional(readOnly = true)
 class PostService(
@@ -29,11 +30,17 @@ class PostService(
     val postUserRepository: PostUserRepositoryInterface
 ) {
 
+    @PersistenceContext
+    lateinit var entityManager: EntityManager
+
+    @Transactional
     fun getOrCreateUserValue(): PostUserValue {
         val userDto = postUserRepository.findCurrentUser()
         val currentUserValue = postRepository.findOneUserValueById(userDto.id)
         if (currentUserValue != null) return currentUserValue
-        return PostUserValue(id = userDto.id, account = userDto.email, nickName = userDto.nickName)
+        var ret = PostUserValue(id = userDto.id, account = userDto.email, nickName = userDto.nickName)
+        entityManager.persist(ret)
+        return ret
     }
 
     @Transactional
@@ -43,7 +50,8 @@ class PostService(
             body = dto.body,
             tags = dto.tags,
             writer = getOrCreateUserValue()
-        ).also { postRepository.save(it) }
+        )
+            .let { postRepository.save(it) }
             .let {
                 CreatedPostDto(
                     id = it.id!!.toString(),
