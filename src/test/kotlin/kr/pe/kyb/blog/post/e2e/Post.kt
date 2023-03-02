@@ -21,12 +21,9 @@ class Post {
     @Autowired
     lateinit var mockMvcWrapper: MockMvcWrapper
 
-
     @Test
     @Transactional
-    @WithMockUser(
-        username = testUserIdString, roles = ["USER"]
-    )
+    @WithMockUser(username = testUserIdString, roles = ["USER"])
     fun createPost() {
         val title = "test_post"
         val body = "test_body"
@@ -41,7 +38,6 @@ class Post {
             PostCreateReq(title = title, body = body, tags = tags),
             WithUser(UUID.fromString(testUserIdString))
         )
-
         Assertions.assertNotNull(res.id)
         Assertions.assertNotNull(res1.id)
         Assertions.assertNotEquals(res.id, res1.id)

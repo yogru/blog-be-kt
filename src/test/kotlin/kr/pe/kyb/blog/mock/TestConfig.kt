@@ -35,6 +35,10 @@ class TestConfig(
 ) {
     @Bean
     fun testUser(): TestUserDto {
+        /*
+        * 현재 test/resources/data.sql 에서 test_user 생성한다.
+        * 반드시 데이터베이스에 저장되는 유저와 반환하는 TestUserDto 값이 같아야한다.
+        * */
         return TestUserDto(
             id = UUID.fromString(testUserIdString),
             account = "test@kyb.pe.kr",
@@ -49,7 +53,6 @@ class TestConfig(
     fun mockMvcWrapper(): MockMvcWrapper {
         return MockMvcWrapper(objectMapper, jwtTokenProvider, mockMvc)
     }
-
 
     @Primary
     @Bean

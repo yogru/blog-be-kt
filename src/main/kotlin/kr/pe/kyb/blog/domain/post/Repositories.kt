@@ -33,4 +33,8 @@ interface PostRepository : JpaRepository<Post, UUID> {
 
     @Query(value = "SELECT u FROM PostUserValue u WHERE u.id =:id ")
     fun findOneUserValueById(id: UUID): PostUserValue?
+
+
+    @Query(value = "SELECT p FROM Post p join fetch p.writer where p.id =:id")
+    fun findByIdFetchUserValue(id: UUID):Post?
 }

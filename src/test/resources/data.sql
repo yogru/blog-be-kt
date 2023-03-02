@@ -7,6 +7,15 @@ VALUES ('USER', '2022-02-24T21:20', '2022-02-24T21:20');
 INSERT INTO tag(id, created_at, updated_at)
 VALUES ('All', '2022-02-24T21:20', '2022-02-24T21:20');
 
+INSERT INTO tag(id, created_at, updated_at)
+VALUES ('test1', '2022-02-24T21:20', '2022-02-24T21:20');
+
+INSERT INTO tag(id, created_at, updated_at)
+VALUES ('test2', '2022-02-24T21:20', '2022-02-24T21:20');
+
+INSERT INTO tag(id, created_at, updated_at)
+VALUES ('test3', '2022-02-24T21:20', '2022-02-24T21:20');
+
 INSERT INTO user_entity(id, account, password, nick_name, status, created_at, updated_at)
 VALUES (UNHEX(REPLACE('f3503729-afb2-4890-984e-edd1575fb1c0', '-', '')),
         'test@kyb.pe.kr',

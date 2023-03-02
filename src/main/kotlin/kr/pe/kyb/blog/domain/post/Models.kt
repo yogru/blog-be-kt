@@ -79,13 +79,13 @@ class Post(
     var deleted: Boolean = false
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
-    var postTags: Set<PostTag> = HashSet()
+    var postTags: MutableSet<PostTag> = HashSet()
 
 
     init {
         id = null
         deleted = false
-        postTags = tags.map { PostTag(tagId = it, post = this) }.toSet()
+        postTags = tags.map { PostTag(tagId = it, post = this) }.toMutableSet()
     }
 
     val tags: Set<String>
@@ -99,6 +99,21 @@ class Post(
 
     val writerEmail: String
         get() = writer.account
+
+
+    fun update(title: String?, body: String?, tags: List<String>?) {
+        if (!body.isNullOrEmpty()) {
+            this.body = body
+        }
+        if (!title.isNullOrEmpty()) {
+            this.title = title
+        }
+        if (!tags.isNullOrEmpty()) {
+            this.postTags.clear()
+            tags.map { PostTag(tagId = it, post = this) }
+                .forEach { this.postTags.add(it) }
+        }
+    }
 }
 
 
