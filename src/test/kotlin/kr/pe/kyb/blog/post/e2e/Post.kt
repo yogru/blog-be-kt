@@ -2,6 +2,7 @@ package kr.pe.kyb.blog.post.e2e
 
 import kr.pe.kyb.blog.domain.post.PostCreateReq
 import kr.pe.kyb.blog.domain.post.PostCreatedRes
+import kr.pe.kyb.blog.domain.post.PostRes
 import kr.pe.kyb.blog.mock.MyTest
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
 import kr.pe.kyb.blog.mock.api.WithUser
@@ -41,7 +42,35 @@ class Post {
         Assertions.assertNotNull(res.id)
         Assertions.assertNotNull(res1.id)
         Assertions.assertNotEquals(res.id, res1.id)
+
+        var foundUser1 = mockMvcWrapper.get(
+            PostRes::class.java,
+            "/api/v2/post/${res.id}",
+            WithUser(UUID.fromString(testUserIdString))
+        )
+
+        Assertions.assertEquals(foundUser1.post.title, title)
+        Assertions.assertEquals(foundUser1.post.body, body)
+        Assertions.assertIterableEquals(tags, foundUser1.post.tags)
+
     }
+
+
+//    @Test
+//    @Transactional
+//    @WithMockUser
+//    fun updatePost() {
+//        val title = "test_post"
+//        val body = "test_body"
+//        val tags = listOf("All")
+//        val res = mockMvcWrapper.post(
+//            PostCreatedRes::class.java, "/api/v2/post",
+//            PostCreateReq(title = title, body = body, tags = tags),
+//            WithUser(UUID.fromString(testUserIdString))
+//        )
+//
+//
+//    }
 
 
 }
