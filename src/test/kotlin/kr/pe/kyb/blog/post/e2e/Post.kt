@@ -1,8 +1,6 @@
 package kr.pe.kyb.blog.post.e2e
 
-import kr.pe.kyb.blog.domain.post.PostCreateReq
-import kr.pe.kyb.blog.domain.post.PostCreatedRes
-import kr.pe.kyb.blog.domain.post.PostRes
+import kr.pe.kyb.blog.domain.post.*
 import kr.pe.kyb.blog.mock.MyTest
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
 import kr.pe.kyb.blog.mock.api.WithUser
@@ -25,7 +23,7 @@ class Post {
     @Test
     @Transactional
     @WithMockUser(username = testUserIdString, roles = ["USER"])
-    fun createPost() {
+    fun curdPost() {
         val title = "test_post"
         val body = "test_body"
         val tags = listOf("All")
@@ -39,10 +37,12 @@ class Post {
             PostCreateReq(title = title, body = body, tags = tags),
             WithUser(UUID.fromString(testUserIdString))
         )
+        // Create
         Assertions.assertNotNull(res.id)
         Assertions.assertNotNull(res1.id)
         Assertions.assertNotEquals(res.id, res1.id)
 
+        // Read
         var foundUser1 = mockMvcWrapper.get(
             PostRes::class.java,
             "/api/v2/post/${res.id}",
@@ -51,7 +51,28 @@ class Post {
 
         Assertions.assertEquals(foundUser1.post.title, title)
         Assertions.assertEquals(foundUser1.post.body, body)
-        Assertions.assertIterableEquals(tags, foundUser1.post.tags)
+        Assertions.assertIterableEquals(foundUser1.post.tags.sorted(), tags.sorted())
+
+        val changedTitle = "changed..title"
+        val changedBody = "changed...body"
+        val changedTags = listOf("All", "test1", "test2")
+
+        mockMvcWrapper.put(
+            UpdatePostRes::class.java, "/api/v2/post",
+            UpdatePostReq(res.id, changedTitle, changedBody, changedTags),
+            WithUser(UUID.fromString(testUserIdString))
+        )
+
+        foundUser1 = mockMvcWrapper.get(
+            PostRes::class.java,
+            "/api/v2/post/${res.id}",
+            WithUser(UUID.fromString(testUserIdString))
+        )
+
+        Assertions.assertEquals(foundUser1.post.title, changedTitle)
+        Assertions.assertEquals(foundUser1.post.body, changedBody)
+        Assertions.assertIterableEquals(foundUser1.post.tags.sorted(), changedTags.sorted())
+
 
     }
 
@@ -68,8 +89,6 @@ class Post {
 //            PostCreateReq(title = title, body = body, tags = tags),
 //            WithUser(UUID.fromString(testUserIdString))
 //        )
-//
-//
 //    }
 
 

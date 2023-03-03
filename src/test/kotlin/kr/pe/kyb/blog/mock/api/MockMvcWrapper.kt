@@ -22,8 +22,6 @@ class MockMvcWrapper(
     private val jwtTokenProvider: JwtTokenProvider,
     private val mockMvc: MockMvc,
 ) {
-
-
     private fun setUpAccessKey(
         build: MockHttpServletRequestBuilder,
         withUser: WithUser?
@@ -48,10 +46,40 @@ class MockMvcWrapper(
         return objectMapper.readValue(mockRet.response.contentAsString, clazz)
     }
 
+    fun <T> delete(clazz: Class<T>, url: String, withUser: WithUser? = null): T {
+        var builders = setUpAccessKey(
+            MockMvcRequestBuilders
+                .delete(url)
+                .contentType(MediaType.APPLICATION_JSON),
+            withUser
+        )
+        var mockRet = mockMvc.perform(builders)
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        return objectMapper.readValue(mockRet.response.contentAsString, clazz)
+    }
+
+
     fun <T, U> post(retClazz: Class<U>, url: String, body: T, withUser: WithUser? = null): U {
         var builders = setUpAccessKey(
             MockMvcRequestBuilders
                 .post(url)
+                .content(objectMapper.writeValueAsString(body))
+                .contentType(MediaType.APPLICATION_JSON),
+            withUser
+        )
+
+        var mockRet = mockMvc.perform(builders)
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andReturn()
+        return objectMapper.readValue(mockRet.response.contentAsString, retClazz)
+    }
+
+
+    fun <T, U> put(retClazz: Class<U>, url: String, body: T, withUser: WithUser? = null): U {
+        var builders = setUpAccessKey(
+            MockMvcRequestBuilders
+                .put(url)
                 .content(objectMapper.writeValueAsString(body))
                 .contentType(MediaType.APPLICATION_JSON),
             withUser
