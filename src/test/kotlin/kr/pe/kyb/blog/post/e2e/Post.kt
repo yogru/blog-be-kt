@@ -1,7 +1,6 @@
 package kr.pe.kyb.blog.post.e2e
 
 import kr.pe.kyb.blog.domain.post.*
-import kr.pe.kyb.blog.infra.error.SimpleErrorResponse
 import kr.pe.kyb.blog.mock.MyTest
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
 import kr.pe.kyb.blog.mock.api.WithUser
@@ -26,7 +25,7 @@ class Post {
     @Test
     @Transactional
     @WithMockUser(username = testUserIdString, roles = ["USER"])
-    fun postCurd() {
+    fun curd() {
         val title = "test_post"
         val body = "test_body"
         val tags = listOf("All")
@@ -89,5 +88,4 @@ class Post {
         )
         Assertions.assertEquals(getFail.statusCode, 404)
     }
-
 }
