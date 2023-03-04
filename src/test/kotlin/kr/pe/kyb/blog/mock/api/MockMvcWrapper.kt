@@ -1,6 +1,7 @@
 package kr.pe.kyb.blog.mock.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import kr.pe.kyb.blog.infra.error.SimpleErrorResponse
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 
 import org.springframework.http.MediaType
@@ -90,5 +91,18 @@ class MockMvcWrapper(
             .andReturn()
         return objectMapper.readValue(mockRet.response.contentAsString, retClazz)
     }
+
+
+    fun getFail(url: String, withUser: WithUser? = null): SimpleErrorResponse {
+        var builders = setUpAccessKey(
+            MockMvcRequestBuilders
+                .delete(url)
+                .contentType(MediaType.APPLICATION_JSON),
+            withUser
+        )
+        var mockRet = mockMvc.perform(builders).andReturn()
+        return objectMapper.readValue(mockRet.response.contentAsString, SimpleErrorResponse::class.java)
+    }
+
 
 }

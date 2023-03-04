@@ -25,6 +25,10 @@ data class PostRes(
     val post: PostDto
 )
 
+data class PostDeleteRes(
+    val id: String
+)
+
 
 data class UpdatePostReq(
     @field:NotBlank
@@ -68,6 +72,12 @@ class PostController(
             )
         )
         return UpdatePostRes(id = updatedPostId.toString())
+    }
+
+    @DeleteMapping("/post/{id}")
+    fun deletePost(@PathVariable id: String): PostDeleteRes {
+        postService.deletePost(id = id)
+        return PostDeleteRes(id = id)
     }
 
 }

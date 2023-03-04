@@ -4,11 +4,14 @@ import kr.pe.kyb.blog.domain.post.*
 import kr.pe.kyb.blog.mock.MyTest
 
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.transaction.annotation.Transactional
 
 @MyTest
+@DisplayName("unit: Post")
 class PostServiceTest {
 
     @Autowired
@@ -17,7 +20,7 @@ class PostServiceTest {
 
     @Test
     @Transactional
-    fun createPost() {
+    fun postCurd() {
         val post1 = postTestService.createPost(CreatePostDto(title = "title", body = "body", tags = listOf("All")))
         Assertions.assertNotNull(post1)
         val post2 = postTestService.createPost(CreatePostDto(title = "title2", body = "body2", tags = listOf("All")))
@@ -39,19 +42,27 @@ class PostServiceTest {
         val updatedPost2 = postTestService.findPost(post2Id.toString())
         Assertions.assertIterableEquals(updatedPost2.tags, updatedTags2.toSet())
 
+
+        var deletedId = postTestService.deletePost(post2Id.toString())
+
+        Assertions.assertThrows(NotFoundPost::class.java) {
+            postTestService.findPost(deletedId.toString())
+        }
     }
 
     @Test
     @Transactional
     fun tagCurd() {
         val deletedPromised = "리액트"
-        val tagNames = listOf("All", deletedPromised, "코틀린", "데이터베이스")
+        val preparedTags = listOf("All", "test1", "test2", "test3") // 미리 data.sql에 준비된 태그들
+        val tagNames = listOf(deletedPromised, "코틀린", "데이터베이스")
+        val allTags = preparedTags + tagNames
         for (tagName in tagNames) {
             postTestService.upsertTag(tagName)
         }
         val foundTags = postTestService.getAllTags()
-        Assertions.assertEquals(foundTags.size, 4)
-        Assertions.assertEquals(foundTags.sorted(), tagNames.sorted())
+        Assertions.assertEquals(foundTags.size, preparedTags.size + tagNames.size)
+        Assertions.assertEquals(foundTags.sorted(), allTags.sorted())
 
         postTestService.deleteTag(deletedPromised)
         Assertions.assertFalse(postTestService.getAllTags().contains(deletedPromised))

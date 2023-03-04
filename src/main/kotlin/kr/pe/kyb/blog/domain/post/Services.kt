@@ -116,6 +116,16 @@ class PostService(
     }
 
     @Transactional
+    fun deletePost(id: String): UUID {
+        return postRepository.findById(UUID.fromString(id))
+            .let { if (!it.isEmpty) it.get() else throw NotFoundPost(id) }
+            .let {
+                postRepository.delete(it)
+                UUID.fromString(id)
+            }
+    }
+
+    @Transactional
     fun updatePost(@Valid dto: PostUpdateDto): UUID {
         return postRepository.findById(UUID.fromString(dto.id))
             .let {
