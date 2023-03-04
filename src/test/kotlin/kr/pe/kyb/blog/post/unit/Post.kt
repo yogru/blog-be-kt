@@ -31,7 +31,7 @@ class Post {
 
         val changedTitle = "changed...title.."
         val post1Id = postTestService.updatePost(PostUpdateDto(post1.id, changedTitle))
-        val updatedPost1 = postTestService.findPost(post1Id.toString())
+        val updatedPost1 = postTestService.fetchPost(post1Id.toString())
 
         Assertions.assertEquals(updatedPost1.title, changedTitle)
         Assertions.assertEquals(updatedPost1.body, post1.body)
@@ -39,14 +39,14 @@ class Post {
 
         val updatedTags2 = listOf("All", "test1", "test3")
         val post2Id = postTestService.updatePost(PostUpdateDto(post2.id, tags = updatedTags2))
-        val updatedPost2 = postTestService.findPost(post2Id.toString())
+        val updatedPost2 = postTestService.fetchPost(post2Id.toString())
         Assertions.assertIterableEquals(updatedPost2.tags, updatedTags2.toSet())
 
 
         var deletedId = postTestService.deletePost(post2Id.toString())
 
         Assertions.assertThrows(NotFoundPost::class.java) {
-            postTestService.findPost(deletedId.toString())
+            postTestService.fetchPost(deletedId.toString())
         }
     }
 

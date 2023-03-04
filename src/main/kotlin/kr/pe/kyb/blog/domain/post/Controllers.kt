@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
 
 data class PostCreateReq(
     @field:NotEmpty
@@ -76,7 +75,7 @@ class PostController(
 
     @GetMapping("/post/{id}")
     fun getPost(@PathVariable id: String): PostRes {
-        var post = postService.findPost(id)
+        var post = postService.fetchPost(id)
         return PostRes(post = post)
     }
 

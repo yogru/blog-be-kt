@@ -1,8 +1,10 @@
 package kr.pe.kyb.blog.domain.post
 
+import jakarta.persistence.Entity
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.domain.post.infra.PostUserRepositoryInterface
 import org.springframework.stereotype.Service
@@ -78,11 +80,18 @@ data class TagDto(
     val tagName: String
 )
 
+data class CreateSeriesDto(
+    @field:NotBlank
+    val title: String,
+    val body: String?,
+    val postIdList: List<UUID> = ArrayList<UUID>()
+)
+
 @Service
 @Transactional(readOnly = true)
 class PostService(
-    val postRepository: PostRepository,
-    val postUserRepository: PostUserRepositoryInterface
+    val postUserRepository: PostUserRepositoryInterface,
+    val repo: PostAggregateRepository
 ) {
 
     @PersistenceContext
@@ -91,7 +100,7 @@ class PostService(
     @Transactional
     fun getOrCreateUserValue(): PostUserValue {
         val userDto = postUserRepository.findCurrentUser()
-        val currentUserValue = postRepository.findOneUserValueById(userDto.id)
+        val currentUserValue = repo.findUserValueById(userDto.id)
         if (currentUserValue != null) return currentUserValue
         val ret = PostUserValue(id = userDto.id, account = userDto.email, nickName = userDto.nickName)
         entityManager.persist(ret)
@@ -106,7 +115,7 @@ class PostService(
             tags = dto.tags,
             writer = getOrCreateUserValue()
         )
-            .let { postRepository.save(it) }
+            .let { repo.persist(it) }
             .let {
                 CreatedPostDto(
                     id = it.id!!.toString(),
@@ -122,50 +131,67 @@ class PostService(
 
     @Transactional
     fun deletePost(id: String): UUID {
-        return postRepository.findById(UUID.fromString(id))
-            .let { if (!it.isEmpty) it.get() else throw NotFoundPost(id) }
+        return repo.findPostById(UUID.fromString(id))
+            .let { it ?: throw NotFoundPost(id) }
             .let {
-                postRepository.delete(it)
+                repo.remove(it)
                 UUID.fromString(id)
             }
     }
 
     @Transactional
     fun updatePost(@Valid dto: PostUpdateDto): UUID {
-        return postRepository.findById(UUID.fromString(dto.id))
+        return repo.findPostById(UUID.fromString(dto.id))
+            .let { it ?: throw NotFoundPost(dto.id) }
             .let {
-                if (!it.isEmpty) it.get() else throw NotFoundPost(dto.id)
-            }.let {
                 it.update(title = dto.title, body = dto.body, tags = dto.tags)
                 it.id!!
             }
     }
 
-
-    fun findPost(id: String): PostDto {
-        return postRepository.findByIdFetchUserValue(UUID.fromString(id)).let {
-            it ?: throw NotFoundPost(id)
-        }.let {
-            PostDto.mapping(it)
-        }
+    fun fetchPost(id: String): PostDto {
+        return repo.findByIdFetchUserValue(UUID.fromString(id))
+            .let { it ?: throw NotFoundPost(id) }
+            .let {
+                PostDto.mapping(it)
+            }
     }
 
     @Transactional
-    fun upsertTag(tagName: String) = postRepository.upsertTag(tagName)
+    fun upsertTag(tagName: String) {
+        repo.upsertTag(tagName)
+    }
 
-    fun getAllTags(): Set<String> = postRepository.findAllTag().map { it.id }.toSet()
+    fun getAllTags(): Set<String> {
+        return repo.findAllTag().map { it.id }.toSet()
+    }
 
 
     fun findTag(tagName: String): TagDto {
-        return postRepository.findTagById(tagName)
+        return repo.findTagById(tagName)
             .let { it ?: throw NotFoundTag(tagName) }
             .let {
                 TagDto(tagName = it.id)
             }
     }
 
-    fun deleteTag(tagName: String) =
-        postRepository.findTagById(tagName).let { it ?: throw NotFoundTag(tagName) }.also {
-            if (tagName == "All") throw UnremovableTagException("All") else postRepository.deleteTagById(tagName)
-        }
+    fun deleteTag(tagName: String) {
+        if (tagName == "All") throw UnremovableTagException(tagName)
+        return repo.findTagById(tagName)
+            .let { it ?: throw NotFoundTag(tagName) }
+            .let { repo.remove(it) }
+            .let { tagName }
+    }
+
+    @Transactional
+    fun createSeries(dto: CreateSeriesDto) {
+        var user = getOrCreateUserValue()
+        Series(
+            userId = user.id,
+            title = dto.title,
+            body = dto.body,
+            postIdList = dto.postIdList
+        ).let { repo.persist(it) }
+    }
+
 }

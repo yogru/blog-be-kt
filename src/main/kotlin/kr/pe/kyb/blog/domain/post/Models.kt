@@ -155,15 +155,34 @@ class Series(
     @Column(columnDefinition = "BINARY(16)")
     val id: UUID? = null,
 
-    @Column(columnDefinition = "BINARY(16)", nullable = false)
+    @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false)
     var userId: UUID,
 
     @Column(length = 255, nullable = false)
     var title: String,
 
     @Column(length = 255, nullable = false)
-    var body: String,
+    var body: String?,
 
-    @OneToMany(mappedBy = "series", cascade = [CascadeType.PERSIST], orphanRemoval = true)
-    var seriesPosts: Set<SeriesPost> = HashSet()
-) : JPABaseEntity() {}
+    postIdList: List<UUID>
+) : JPABaseEntity() {
+
+    @OneToMany(mappedBy = "series", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var seriesPosts: Set<SeriesPost>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "user_id",
+        nullable = false,
+        insertable = false,
+        updatable = false,
+        foreignKey = ForeignKey(name = "fk_series_user")
+    )
+    val writer: PostUserValue? = null
+
+    init {
+        seriesPosts = postIdList.mapIndexed { index, postId ->
+            SeriesPost(postId = postId, orderNumber = index + 1, series = this)
+        }.toSet()
+    }
+}

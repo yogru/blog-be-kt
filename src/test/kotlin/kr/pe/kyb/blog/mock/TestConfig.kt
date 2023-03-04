@@ -1,6 +1,7 @@
 package kr.pe.kyb.blog.mock
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import kr.pe.kyb.blog.domain.post.PostAggregateRepository
 import kr.pe.kyb.blog.domain.post.PostRepository
 import kr.pe.kyb.blog.domain.post.PostService
 import kr.pe.kyb.blog.domain.post.infra.CurrentUserDto
@@ -32,7 +33,8 @@ class TestConfig(
     var objectMapper: ObjectMapper,
     var jwtTokenProvider: JwtTokenProvider,
     var mockMvc: MockMvc,
-    var postRepository: PostRepository,
+    val postAggregateRepository: PostAggregateRepository
+
 ) {
     @Bean
     fun testUser(): TestUserDto {
@@ -69,14 +71,14 @@ class TestConfig(
     fun postService(): PostService {
         val t = this.testUser()
         return PostService(
-            postRepository,
             PostUserRepositoryMock(
                 CurrentUserDto(
                     id = t.id,
                     email = t.account,
                     nickName = t.nickName
                 )
-            )
+            ),
+            postAggregateRepository
         )
     }
 

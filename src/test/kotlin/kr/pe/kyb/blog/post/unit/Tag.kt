@@ -34,6 +34,7 @@ class Tag {
         Assertions.assertEquals(foundTags.sorted(), allTags.sorted())
 
         postTestService.deleteTag(deletedPromised)
+
         Assertions.assertFalse(postTestService.getAllTags().contains(deletedPromised))
 
         Assertions.assertThrows(UnremovableTagException::class.java) {
