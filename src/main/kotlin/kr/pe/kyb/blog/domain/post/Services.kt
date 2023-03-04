@@ -73,6 +73,11 @@ data class PostUpdateDto(
     val tags: List<String>? = null
 )
 
+
+data class TagDto(
+    val tagName: String
+)
+
 @Service
 @Transactional(readOnly = true)
 class PostService(
@@ -149,6 +154,15 @@ class PostService(
     fun upsertTag(tagName: String) = postRepository.upsertTag(tagName)
 
     fun getAllTags(): Set<String> = postRepository.findAllTag().map { it.id }.toSet()
+
+
+    fun findTag(tagName: String): TagDto {
+        return postRepository.findTagById(tagName)
+            .let { it ?: throw NotFoundTag(tagName) }
+            .let {
+                TagDto(tagName = it.id)
+            }
+    }
 
     fun deleteTag(tagName: String) =
         postRepository.findTagById(tagName).let { it ?: throw NotFoundTag(tagName) }.also {

@@ -52,6 +52,15 @@ data class UpsertTagRes(
     val tag: String
 )
 
+
+data class DeleteTagRes(
+    val tag: String
+)
+
+data class FindTagRes(
+    val tag: String
+)
+
 @RestV2
 class PostController(
     val postService: PostService
@@ -95,6 +104,19 @@ class PostController(
         postService.upsertTag(upsertTagReq.tag)
         return UpsertTagRes(tag = upsertTagReq.tag)
     }
+
+    @DeleteMapping("/post/tag/{tag}")
+    fun deleteTag(@PathVariable tag: String): DeleteTagRes {
+        postService.deleteTag(tag)
+        return DeleteTagRes(tag = tag)
+    }
+
+    @GetMapping("/post/tag/{tag}")
+    fun findTag(@PathVariable tag: String): FindTagRes {
+        var tagDto = postService.findTag(tag)
+        return FindTagRes(tag = tagDto.tagName)
+    }
+
 }
 
 

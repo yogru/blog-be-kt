@@ -1,5 +1,6 @@
 package kr.pe.kyb.blog.post.e2e
 
+import kr.pe.kyb.blog.domain.post.DeleteTagRes
 import kr.pe.kyb.blog.domain.post.UpsertTagRes
 import kr.pe.kyb.blog.mock.MyTest
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
@@ -22,13 +23,28 @@ class Tag {
     @Test
     @Transactional
     @WithMockUser(username = testUserIdString, roles = ["USER"])
-    fun curd() {
+    fun crd() {
         var newTag = "e2eTagTest"
-        var res = mockMvcWrapper
+
+        // create
+        var createRes = mockMvcWrapper
             .withPostHeader("/api/v2/post/tag", UpsertTagRes(tag = newTag))
             .withBearerToken()
             .request(UpsertTagRes::class.java)
+        Assertions.assertEquals(createRes.tag, newTag)
 
-        Assertions.assertEquals(res.tag, newTag)
+        // delete
+        var deleteRes = mockMvcWrapper
+            .withDeleteHeader("/api/v2/post/tag/${newTag}")
+            .withBearerToken()
+            .request(DeleteTagRes::class.java)
+
+        Assertions.assertEquals(deleteRes.tag, newTag)
+
+        var foundFailRes = mockMvcWrapper.withGetHeader("/api/v2/post/tag/${newTag}")
+            .withBearerToken()
+            .requestSimpleFail()
+
+        Assertions.assertEquals(foundFailRes.statusCode, 404)
     }
 }
