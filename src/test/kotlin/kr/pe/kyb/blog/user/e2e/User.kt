@@ -20,6 +20,7 @@ import java.util.*
 
 
 @MyTest
+@DisplayName("e2e: user")
 class User {
 
     @Autowired
@@ -34,21 +35,18 @@ class User {
     @Test
     @WithMockUser(username = testUserIdString, roles = ["USER"], setupBefore = TestExecutionEvent.TEST_METHOD)
     fun currentUserDtoCheck() {
-        val res = mockMvcWrapper.get(
-            CurrentUserResponse::class.java,
-            "/api/v2/user",
-            WithUser(id = UUID.fromString(testUserIdString))
-        )
+        val res = mockMvcWrapper.withGetHeader("/api/v2/user")
+            .withBearerToken()
+            .request(CurrentUserResponse::class.java)
         Assertions.assertEquals(res.user.id.toString(), testUserIdString)
     }
 
     @Test
     fun loginTest() {
-        val res = mockMvcWrapper.post(
-            JwtToken::class.java,
+        val res = mockMvcWrapper.withPostHeader(
             "/api/v2/user/login",
             LoginUserRequest(email = testUserDto.account, password = testUserDto.password)
-        )
+        ).request(JwtToken::class.java)
         Assertions.assertNotNull(res.accessToken)
         Assertions.assertTrue(jwtTokenProvider.validateToken(res.accessToken))
     }
@@ -59,11 +57,12 @@ class User {
         val newEmail = "kybdev@kyb.pe.kr"
         val newPassword = "1Adkljvio23uo23nsd)!$#@mnz!"
         val nickName = "kybdev"
-        val res = mockMvcWrapper.post(
-            JoinUserResponse::class.java,
-            "/api/v2/user/join",
-            JoinUserRequest(email = newEmail, password = newPassword, nickName = nickName)
-        )
+        val res = mockMvcWrapper
+            .withPostHeader(
+                "/api/v2/user/join",
+                JoinUserRequest(email = newEmail, password = newPassword, nickName = nickName)
+            )
+            .request(JoinUserResponse::class.java)
         Assertions.assertNotNull(res)
         Assertions.assertNotNull(res.userId)
     }

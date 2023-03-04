@@ -29,27 +29,28 @@ class Post {
         val title = "test_post"
         val body = "test_body"
         val tags = listOf("All")
-        val res = mockMvcWrapper.post(
-            PostCreatedRes::class.java, "/api/v2/post",
-            PostCreateReq(title = title, body = body, tags = tags),
-            WithUser(UUID.fromString(testUserIdString))
-        )
-        val res1 = mockMvcWrapper.post(
-            PostCreatedRes::class.java, "/api/v2/post",
-            PostCreateReq(title = title, body = body, tags = tags),
-            WithUser(UUID.fromString(testUserIdString))
-        )
+
+        val res = mockMvcWrapper
+            .withPostHeader("/api/v2/post", PostCreateReq(title = title, body = body, tags = tags))
+            .withBearerToken()
+            .request(PostCreatedRes::class.java)
+
+
+        val res1 = mockMvcWrapper
+            .withPostHeader("/api/v2/post", PostCreateReq(title = title, body = body, tags = tags))
+            .withBearerToken()
+            .request(PostCreatedRes::class.java)
+
         // Create
         Assertions.assertNotNull(res.id)
         Assertions.assertNotNull(res1.id)
         Assertions.assertNotEquals(res.id, res1.id)
 
         // Read
-        var foundUser1 = mockMvcWrapper.get(
-            PostRes::class.java,
-            "/api/v2/post/${res.id}",
-            WithUser(UUID.fromString(testUserIdString))
-        )
+        var foundUser1 = mockMvcWrapper
+            .withGetHeader("/api/v2/post/${res.id}")
+            .withBearerToken()
+            .request(PostRes::class.java)
 
         Assertions.assertEquals(foundUser1.post.title, title)
         Assertions.assertEquals(foundUser1.post.body, body)
@@ -59,33 +60,30 @@ class Post {
         val changedBody = "changed...body"
         val changedTags = listOf("All", "test1", "test2")
         // update
-        mockMvcWrapper.put(
-            UpdatePostRes::class.java, "/api/v2/post",
-            UpdatePostReq(res.id, changedTitle, changedBody, changedTags),
-            WithUser(UUID.fromString(testUserIdString))
-        )
+        mockMvcWrapper.withPutHeader("/api/v2/post", UpdatePostReq(res.id, changedTitle, changedBody, changedTags))
+            .withBearerToken()
+            .request(UpdatePostRes::class.java)
 
-        foundUser1 = mockMvcWrapper.get(
-            PostRes::class.java,
-            "/api/v2/post/${res.id}",
-            WithUser(UUID.fromString(testUserIdString))
-        )
+
+        foundUser1 = mockMvcWrapper
+            .withGetHeader("/api/v2/post/${res.id}")
+            .withBearerToken()
+            .request(PostRes::class.java)
+
 
         Assertions.assertEquals(foundUser1.post.title, changedTitle)
         Assertions.assertEquals(foundUser1.post.body, changedBody)
         Assertions.assertIterableEquals(foundUser1.post.tags.sorted(), changedTags.sorted())
 
         // delete
-        val deletedPostId = mockMvcWrapper.delete(
-            PostDeleteRes::class.java,
-            "/api/v2/post/${foundUser1.post.id}",
-            WithUser(UUID.fromString(testUserIdString))
-        )
+        val deletedPostId = mockMvcWrapper
+            .withDeleteHeader("/api/v2/post/${foundUser1.post.id}")
+            .withBearerToken().request(PostDeleteRes::class.java)
 
-        val getFail = mockMvcWrapper.getFail(
-            "/api/v2/post/${deletedPostId.id}",
-            WithUser(UUID.fromString(testUserIdString))
-        )
-        Assertions.assertEquals(getFail.statusCode, 404)
+        val foundDeletedPost = mockMvcWrapper
+            .withGetHeader("/api/v2/post/${deletedPostId.id}")
+            .withBearerToken()
+            .requestSimpleFail()
+        Assertions.assertEquals(foundDeletedPost.statusCode, 404)
     }
 }

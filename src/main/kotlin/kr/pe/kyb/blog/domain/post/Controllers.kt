@@ -42,6 +42,16 @@ data class UpdatePostRes(
     val id: String
 )
 
+
+data class UpsertTagReq(
+    @field:NotBlank
+    val tag: String
+)
+
+data class UpsertTagRes(
+    val tag: String
+)
+
 @RestV2
 class PostController(
     val postService: PostService
@@ -80,4 +90,11 @@ class PostController(
         return PostDeleteRes(id = id)
     }
 
+    @PostMapping("/post/tag")
+    fun upsertTag(@RequestBody @Valid upsertTagReq: UpsertTagReq): UpsertTagRes {
+        postService.upsertTag(upsertTagReq.tag)
+        return UpsertTagRes(tag = upsertTagReq.tag)
+    }
 }
+
+

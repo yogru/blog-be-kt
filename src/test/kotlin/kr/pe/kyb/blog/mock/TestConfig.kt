@@ -7,6 +7,7 @@ import kr.pe.kyb.blog.domain.post.infra.CurrentUserDto
 import kr.pe.kyb.blog.domain.user.UserStatus
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
+import kr.pe.kyb.blog.mock.api.WithUser
 import kr.pe.kyb.blog.mock.post.PostUserRepositoryMock
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -49,9 +50,18 @@ class TestConfig(
         )
     }
 
+
     @Bean
     fun mockMvcWrapper(): MockMvcWrapper {
-        return MockMvcWrapper(objectMapper, jwtTokenProvider, mockMvc)
+        return MockMvcWrapper(
+            objectMapper,
+            jwtTokenProvider,
+            mockMvc,
+            WithUser(
+                id = UUID.fromString(testUserIdString),
+                roles = listOf("USER")
+            )
+        )
     }
 
     @Primary

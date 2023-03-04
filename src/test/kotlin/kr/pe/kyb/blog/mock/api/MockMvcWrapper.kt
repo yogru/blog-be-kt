@@ -22,87 +22,54 @@ class MockMvcWrapper(
     private val objectMapper: ObjectMapper,
     private val jwtTokenProvider: JwtTokenProvider,
     private val mockMvc: MockMvc,
+    private val withUser: WithUser
 ) {
-    private fun setUpAccessKey(
-        build: MockHttpServletRequestBuilder,
-        withUser: WithUser?
-    ): MockHttpServletRequestBuilder {
-        if (withUser != null) {
-            val token = jwtTokenProvider.generateToken(withUser.id.toString(), withUser.roles)
-            return build.header("authentication", "Bearer " + token.accessToken)
-        }
-        return build
+    private var headerBuilder: MockHttpServletRequestBuilder? = null
+
+    fun withBearerToken(): MockMvcWrapper {
+        assert(headerBuilder != null)
+        val token = jwtTokenProvider.generateToken(withUser.id.toString(), withUser.roles)
+        headerBuilder!!.header("authentication", "Bearer " + token.accessToken)
+        return this
     }
 
-    fun <T> get(clazz: Class<T>, url: String, withUser: WithUser? = null): T {
-        var builders = setUpAccessKey(
-            MockMvcRequestBuilders
-                .get(url)
-                .contentType(MediaType.APPLICATION_JSON),
-            withUser
-        )
-        var mockRet = mockMvc.perform(builders)
+    fun withGetHeader(url: String): MockMvcWrapper {
+        headerBuilder = MockMvcRequestBuilders.get(url).contentType(MediaType.APPLICATION_JSON)
+        return this
+    }
+
+    fun withDeleteHeader(url: String): MockMvcWrapper {
+        headerBuilder = MockMvcRequestBuilders.delete(url).contentType(MediaType.APPLICATION_JSON)
+        return this
+    }
+
+    fun <T> withPostHeader(url: String, body: T): MockMvcWrapper {
+        headerBuilder = MockMvcRequestBuilders
+            .post(url)
+            .content(objectMapper.writeValueAsString(body))
+            .contentType(MediaType.APPLICATION_JSON)
+        return this
+    }
+
+    fun <T> withPutHeader(url: String, body: T): MockMvcWrapper {
+        headerBuilder = MockMvcRequestBuilders
+            .put(url)
+            .content(objectMapper.writeValueAsString(body))
+            .contentType(MediaType.APPLICATION_JSON)
+        return this
+    }
+    fun <T> request(clazz: Class<T>): T {
+        assert(headerBuilder != null)
+        var ret = mockMvc.perform(headerBuilder!!)
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andReturn()
-        return objectMapper.readValue(mockRet.response.contentAsString, clazz)
+        return objectMapper.readValue(ret.response.contentAsString, clazz)
     }
 
-    fun <T> delete(clazz: Class<T>, url: String, withUser: WithUser? = null): T {
-        var builders = setUpAccessKey(
-            MockMvcRequestBuilders
-                .delete(url)
-                .contentType(MediaType.APPLICATION_JSON),
-            withUser
-        )
-        var mockRet = mockMvc.perform(builders)
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
-        return objectMapper.readValue(mockRet.response.contentAsString, clazz)
-    }
-
-
-    fun <T, U> post(retClazz: Class<U>, url: String, body: T, withUser: WithUser? = null): U {
-        var builders = setUpAccessKey(
-            MockMvcRequestBuilders
-                .post(url)
-                .content(objectMapper.writeValueAsString(body))
-                .contentType(MediaType.APPLICATION_JSON),
-            withUser
-        )
-
-        var mockRet = mockMvc.perform(builders)
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
-        return objectMapper.readValue(mockRet.response.contentAsString, retClazz)
-    }
-
-
-    fun <T, U> put(retClazz: Class<U>, url: String, body: T, withUser: WithUser? = null): U {
-        var builders = setUpAccessKey(
-            MockMvcRequestBuilders
-                .put(url)
-                .content(objectMapper.writeValueAsString(body))
-                .contentType(MediaType.APPLICATION_JSON),
-            withUser
-        )
-
-        var mockRet = mockMvc.perform(builders)
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andReturn()
-        return objectMapper.readValue(mockRet.response.contentAsString, retClazz)
-    }
-
-
-    fun getFail(url: String, withUser: WithUser? = null): SimpleErrorResponse {
-        var builders = setUpAccessKey(
-            MockMvcRequestBuilders
-                .delete(url)
-                .contentType(MediaType.APPLICATION_JSON),
-            withUser
-        )
-        var mockRet = mockMvc.perform(builders).andReturn()
+    fun requestSimpleFail(): SimpleErrorResponse {
+        assert(headerBuilder != null)
+        var mockRet = mockMvc.perform(headerBuilder!!).andReturn()
         return objectMapper.readValue(mockRet.response.contentAsString, SimpleErrorResponse::class.java)
     }
-
 
 }
