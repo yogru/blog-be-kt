@@ -40,7 +40,7 @@ class Post {
         val updatedTags2 = listOf("All", "test1", "test3")
         val post2Id = postTestService.updatePost(PostUpdateDto(post2.id, tags = updatedTags2))
         val updatedPost2 = postTestService.fetchPost(post2Id.toString())
-        Assertions.assertIterableEquals(updatedPost2.tags, updatedTags2.toSet())
+        Assertions.assertIterableEquals(updatedPost2.tags.toList().sorted(), updatedTags2.sorted())
 
 
         var deletedId = postTestService.deletePost(post2Id.toString())

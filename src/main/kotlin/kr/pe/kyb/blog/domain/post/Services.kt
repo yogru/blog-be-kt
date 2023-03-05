@@ -1,7 +1,5 @@
 package kr.pe.kyb.blog.domain.post
 
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -58,7 +56,7 @@ data class PostDto constructor(
                 id = p.id!!.toString(),
                 title = p.title,
                 body = p.body,
-                tags = p.tags,
+                tags = p.tagNames,
                 writer = PostUserValueDto.mapping(p.writer)
             )
         }
@@ -131,10 +129,11 @@ class PostService(
 
     @Transactional
     fun createPost(@Valid dto: CreatePostDto): CreatedPostDto {
+        var tags = repo.findTagInIds(dto.tags)
         return Post(
             title = dto.title,
             body = dto.body,
-            tags = dto.tags,
+            tags = tags,
             writer = getOrCreateUserValue()
         )
             .let { repo.persist(it) }
@@ -143,7 +142,7 @@ class PostService(
                     id = it.id!!.toString(),
                     title = it.title,
                     body = it.body,
-                    tags = it.tags,
+                    tags = it.tagNames,
                     writerId = it.writerId,
                     writerEmail = it.writerEmail,
                     writerName = it.writerName
@@ -163,10 +162,11 @@ class PostService(
 
     @Transactional
     fun updatePost(@Valid dto: PostUpdateDto): UUID {
+        var tags = repo.findTagInIds(dto.tags)
         return repo.findPostById(UUID.fromString(dto.id))
             .let { it ?: throw NotFoundPost(dto.id) }
             .let {
-                it.update(title = dto.title, body = dto.body, tags = dto.tags)
+                it.update(title = dto.title, body = dto.body, tags = tags)
                 it.id!!
             }
     }
@@ -218,7 +218,7 @@ class PostService(
             title = dto.title,
             body = dto.body,
             posts = sortedPosts,
-            )
+        )
             .let { repo.persist(it) }
             .let {
                 it.id!!

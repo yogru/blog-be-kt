@@ -6,29 +6,30 @@ import org.hibernate.annotations.GenericGenerator
 import java.util.*
 
 
-
 @Entity
 class Tag(
+    tagName: String
+) : JPABaseEntity() {
     @Id
     @Column(length = 255, nullable = false)
-    val id: String
-) : JPABaseEntity()
+    val id: String = tagName
+}
 
 
 @Entity
 class PostTag(
+    post: Post,
+    tag: Tag
+) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(columnDefinition = "BINARY(16)")
-    val id: UUID? = null,
-
-    @Column(name = "tag_id", length = 255, nullable = false)
-    var tagId: String,
+    val id: UUID? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    var post: Post,
+    var post: Post = post
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
@@ -37,9 +38,8 @@ class PostTag(
         insertable = false,
         foreignKey = ForeignKey(name = "fk_post_tag_tag")
     )
-    var tag: Tag? = null,
-
-    ) : JPABaseEntity()
+    var tag: Tag = tag
+}
 
 
 @Entity
@@ -60,7 +60,7 @@ class Post(
     title: String,
     body: String,
     writer: PostUserValue,
-    tags: List<String>
+    tags: List<Tag>
 ) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -82,11 +82,11 @@ class Post(
     var deleted: Boolean = false
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
-    var postTags: MutableSet<PostTag> = tags.map { PostTag(tagId = it, post = this) }.toMutableSet()
+    var postTags: MutableSet<PostTag> = tags.map { PostTag(tag = it, post = this) }.toMutableSet()
 
 
-    val tags: Set<String>
-        get() = postTags.map { it.tagId }.toSet()
+    val tagNames: Set<String>
+        get() = postTags.map { it.tag.id }.toSet()
 
     val writerId: UUID
         get() = writer.id
@@ -98,7 +98,7 @@ class Post(
         get() = writer.account
 
 
-    fun update(title: String?, body: String?, tags: List<String>?) {
+    fun update(title: String?, body: String?, tags: List<Tag>?) {
         if (!body.isNullOrEmpty()) {
             this.body = body
         }
@@ -107,7 +107,7 @@ class Post(
         }
         if (!tags.isNullOrEmpty()) {
             this.postTags.clear()
-            tags.map { PostTag(tagId = it, post = this) }
+            tags.map { PostTag(tag = it, post = this) }
                 .forEach { this.postTags.add(it) }
         }
     }

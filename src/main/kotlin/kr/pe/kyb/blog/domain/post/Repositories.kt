@@ -13,7 +13,12 @@ interface PostRepository : JpaRepository<Post, UUID> {
     fun findByIdFetchUserValue(id: UUID): Post?
 
 
-    @Query(value = "SELECT p FROM Post p where p.id in :ids")
+    @Query(
+        value = "SELECT p FROM Post p  " +
+                "left join fetch p.postTags postTags " +
+                "left join fetch postTags.tag " +
+                "where p.id in :ids"
+    )
     fun findInIds(ids: List<UUID>): List<Post>
 }
 
@@ -25,7 +30,6 @@ interface SeriesRepository : JpaRepository<Series, UUID> {
                 " where s.id =:id "
     )
     fun fetchSeries(id: UUID): Series?
-
 
 }
 
@@ -41,6 +45,10 @@ interface TagRepository : JpaRepository<Tag, String> {
         createdAt: LocalDateTime = LocalDateTime.now(),
         updatedAt: LocalDateTime = LocalDateTime.now()
     )
+
+    @Query(value = "SELECT t FROM Tag t where t.id in :ids")
+    fun findInIds(ids: List<String>): List<Tag>
+
 }
 
 @Repository
@@ -87,5 +95,10 @@ class PostAggregateRepository(
     fun findPostInIds(ids: List<UUID>): List<Post> {
         if (ids.isEmpty()) return listOf()
         return postRepository.findInIds(ids)
+    }
+
+    fun findTagInIds(ids: List<String>?): List<Tag> {
+        if (ids.isNullOrEmpty()) return listOf()
+        return tagRepository.findInIds(ids!!)
     }
 }
