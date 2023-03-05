@@ -7,9 +7,7 @@ import kr.pe.kyb.blog.infra.persistence.EntityManagerWrapper
 import kr.pe.kyb.blog.infra.spring.MySpringUtils
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -40,19 +38,18 @@ data class UserDto(
 @Component
 class CustomAuthenticationProvider(
     val passwordEncoder: PasswordEncoder,
-    val userRepository: UserRepository
+    val repo: UserAggregateRepository
 ) : AuthenticationProvider {
-
     override fun authenticate(authentication: Authentication): Authentication? {
         val name: String = authentication.name
         val password: String = authentication.credentials.toString()
-        val userDetail = userRepository.findOneById(UUID.fromString(name))
+        val userDetail = repo.findOneById(UUID.fromString(name))
             .let { it ?: throw UsernameNotFoundException("해당 유저 $name 찾을 수 없습니다.") }
             .let {
                 User.builder()
                     .username(name)
                     .password(it.password)
-                    .roles(*it.roles.toTypedArray())
+                    .roles(*it.roleStrings.toTypedArray())
                     .build()
             }
         return if (password != null && passwordEncoder.matches(password, userDetail.password)) {
@@ -70,12 +67,12 @@ class CustomAuthenticationProvider(
 
 @Service
 class UserManageService(
-    val userRepository: UserRepository
+    val repo: UserAggregateRepository
 ) {
 
 
     fun getCurrentUser(): UserDto =
-        userRepository.findOneById(MySpringUtils.currentUserName)
+        repo.findOneById(MySpringUtils.currentUserName)
             .let { it ?: throw NotFoundCurrentUser() }
             .let {
                 UserDto(
@@ -94,31 +91,38 @@ class UserManageService(
 @Transactional(readOnly = true)
 class JoinService(
     val jwtTokenProvider: JwtTokenProvider,
-    val userRepository: UserRepository,
+    val repo: UserAggregateRepository,
     val passwordEncoder: PasswordEncoder,
     val em: EntityManagerWrapper
 ) {
     companion object : Log {}
 
     @Transactional
-    fun join(user: CreateUserDto): UUID = userRepository.findOneByAccount(user.email)
-        .let { it != null && throw CreateFailExistEmail(it.account) }
-        .let {
-            UserEntity(
-                id = if (user.id != null) UUID.fromString(user.id) else null,
-                account = user.email,
-                password = passwordEncoder.encode(user.password),
-                status = UserStatus.SIGN,
-                nickName = user.nickName,
-            )
-        }
-        .let { em.make(it) }
-        .let { it.id!! }
+    fun join(user: CreateUserDto): UUID {
+        var roles: List<Role> = repo.findRoleInId(listOf(RoleEum.USER))
+
+        return repo.findOneByAccount(user.email)
+            .let { it != null && throw CreateFailExistEmail(it.account) }
+            .let {
+                UserEntity(
+                    id = if (user.id != null) UUID.fromString(user.id) else null,
+                    account = user.email,
+                    password = passwordEncoder.encode(user.password),
+                    status = UserStatus.SIGN,
+                    nickName = user.nickName,
+                    roles = roles
+                )
+            }
+            .let { em.make(it) }
+            .let { it.id!! }
+
+    }
+
 
     @Transactional
-    fun login(account: String, password: String): JwtToken = userRepository.findOneByAccount(account)
+    fun login(account: String, password: String): JwtToken = repo.findOneByAccount(account)
         .let { it ?: throw UsernameNotFoundException("해당 유저 $account 찾을 수 없습니다.") }
         .also { !passwordEncoder.matches(password, it.password) && throw RuntimeException("일치하지 않는 패스워드") }
-        .let { jwtTokenProvider.generateToken(username = it.id.toString(), roles = it.roles) }
+        .let { jwtTokenProvider.generateToken(username = it.id.toString(), roles = it.roleStrings) }
 
 }

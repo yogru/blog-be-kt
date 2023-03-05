@@ -22,71 +22,64 @@ enum class RoleEum {
 // https://gksdudrb922.tistory.com/217
 @Entity
 class Role(
+    roleEnum: RoleEum
+) : JPABaseEntity() {
     @Id
     @Column(length = 255, nullable = false)
     @Enumerated(EnumType.STRING)
-    val id: RoleEum
-) : JPABaseEntity()
+    val id: RoleEum = roleEnum
+}
 
 @Entity
 class UserRole(
+    user: UserEntity,
+    role: Role
+) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(columnDefinition = "BINARY(16)")
-    val id: UUID? = null,
+    val id: UUID? = null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    var user: UserEntity,
-
-
-    @Column(name = "role_id", length = 255, nullable = false)
-    @Enumerated(EnumType.STRING)
-    val roleId: RoleEum,
+    var user: UserEntity = user
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-        name = "role_id",
-        updatable = false,
-        insertable = false,
-        foreignKey = ForeignKey(name = "fk_user_role_role")
-    )
-    var role: Role? = null
-) : JPABaseEntity()
+    @JoinColumn(name = "role_id", foreignKey = ForeignKey(name = "fk_user_role_role"))
+    var role: Role = role
+}
 
 @Entity
 class UserEntity(
     id: UUID? = null,
-
-    @Column(length = 255, unique = true, nullable = false)
-    var account: String,
-
-    @Column(length = 255)
-    var password: String,
-
-    @Column(length = 255, nullable = false)
-    @Enumerated(EnumType.STRING)
-    var status: UserStatus,
-
-    @Column(length = 255)
-    var nickName: String,
+    account: String,
+    password: String,
+    status: UserStatus = UserStatus.SIGN,
+    nickName: String,
+    roles: List<Role>
 ) : JPABaseEntity() {
 
     @Id
     @Column(columnDefinition = "BINARY(16)")
-    val id: UUID
+    val id: UUID = id ?: UUID.randomUUID()
+
+    @Column(length = 255, unique = true, nullable = false)
+    var account: String = account
+
+    @Column(length = 255)
+    var password: String = password
+
+    @Column(length = 255, nullable = false)
+    @Enumerated(EnumType.STRING)
+    var status: UserStatus = status
+
+    @Column(length = 255)
+    var nickName: String = nickName
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.PERSIST], orphanRemoval = true)
-    var userRoles: Set<UserRole> = HashSet()
+    var userRoles: Set<UserRole> = roles.map { UserRole(user = this, role = it) }.toSet()
 
-    init {
-        this.id = id ?: UUID.randomUUID()
-        this.userRoles = setOf(
-            UserRole(user = this, roleId = RoleEum.USER)
-        )
-    }
-
-    val roles: List<String>
-        get() = this.userRoles.map { it.roleId.toString() }
+    val roleStrings: List<String>
+        get() = this.userRoles.map { it.role.id.toString() }
 }
