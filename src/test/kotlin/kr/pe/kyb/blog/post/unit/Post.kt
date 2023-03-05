@@ -1,14 +1,13 @@
 package kr.pe.kyb.blog.post.unit
 
-import kr.pe.kyb.blog.domain.post.CreatePostDto
-import kr.pe.kyb.blog.domain.post.NotFoundPost
-import kr.pe.kyb.blog.domain.post.PostService
-import kr.pe.kyb.blog.domain.post.PostUpdateDto
+import kr.pe.kyb.blog.domain.post.*
 import kr.pe.kyb.blog.mock.MyTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
+import org.springframework.test.annotation.Rollback
 import org.springframework.transaction.annotation.Transactional
 
 @MyTest
@@ -48,6 +47,43 @@ class Post {
         Assertions.assertThrows(NotFoundPost::class.java) {
             postTestService.fetchPost(deletedId.toString())
         }
+    }
+
+    @Test
+    @Rollback(false)
+    @Transactional
+    fun list() {
+        val testTagNames = listOf(
+            "react", "database", "it", "kotlin", "spring", "spring-boot",
+            "os", "network", "study", "etc", "movie"
+        )
+        for (tagName in testTagNames) {
+            postTestService.upsertTag(tagName)
+        }
+
+        for (i in 1..100) {
+            postTestService.createPost(
+                CreatePostDto(
+                    title = "title_$i",
+                    body = "body_$i",
+                    tags = listOf(
+                        "All",
+                        testTagNames[i % testTagNames.size],
+                        testTagNames[(i + 1) % testTagNames.size],
+                        testTagNames[(i + 2) % testTagNames.size],
+                    )
+                )
+            )
+        }
+
+        var posts = postTestService.listDynamicPost(
+            PostCondition(
+                tagNames = listOf(testTagNames[0])
+            ), PageRequest.of(0, 10)
+        )
+        Assertions.assertEquals(posts.size, 10)
+        val isContains = posts.map { it.tags.contains(testTagNames[0]) }
+        Assertions.assertIterableEquals(isContains, (1..10).map { true })
     }
 
 }

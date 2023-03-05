@@ -34,8 +34,6 @@ class PostTag(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "tag_id",
-        updatable = false,
-        insertable = false,
         foreignKey = ForeignKey(name = "fk_post_tag_tag")
     )
     var tag: Tag = tag
@@ -82,7 +80,8 @@ class Post(
     var deleted: Boolean = false
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
-    var postTags: MutableSet<PostTag> = tags.map { PostTag(tag = it, post = this) }.toMutableSet()
+    var postTags: MutableSet<PostTag> =
+        tags.map { PostTag(tag = it, post = this) }.toMutableSet()
 
 
     val tagNames: Set<String>

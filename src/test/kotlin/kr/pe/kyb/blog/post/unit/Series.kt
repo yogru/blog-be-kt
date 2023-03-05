@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import kotlin.collections.ArrayList
@@ -98,8 +99,6 @@ class Series {
         )
 
         updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
-        println(newPostIds)
-        println(updatedSeries.posts.map { it.id })
         Assertions.assertEquals(updatedSeries.posts.size, 2)
         Assertions.assertIterableEquals(
             updatedSeries.posts.map { it.id },
@@ -107,5 +106,22 @@ class Series {
         )
 
 
+    }
+
+    @Test
+    @Transactional
+    fun listing() {
+        for (i in 1..100) {
+            postTestService.createSeries(
+                CreateSeriesDto(
+                    title = "title_$i",
+                    body = "body_$i",
+                )
+            )
+        }
+        var series = postTestService.listSeries(PageRequest.of(0, 10))
+        Assertions.assertEquals(series.size, 10)
+        series = postTestService.listSeries(PageRequest.of(10, 10))
+        Assertions.assertEquals(series.size, 0)
     }
 }

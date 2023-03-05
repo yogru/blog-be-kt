@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import kr.pe.kyb.blog.domain.post.infra.PostUserRepositoryInterface
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -105,10 +106,10 @@ data class CreateSeriesDto(
     @field:NotBlank
     val title: String,
     val body: String = "",
-    val postIds: List<UUID> = ArrayList()
+    val postIds: List<UUID> = listOf()
 )
 
-data class SeriesDto(
+data class SeriesDetailDto(
     val id: UUID,
     var title: String,
     val writer: PostUserValueDto,
@@ -124,8 +125,8 @@ data class SeriesDto(
                 .map { OrderedPostDto.mapping(it.post, it.orderNumber) }
         }
 
-        fun mapping(series: Series): SeriesDto {
-            return SeriesDto(
+        fun mapping(series: Series): SeriesDetailDto {
+            return SeriesDetailDto(
                 id = series.id!!,
                 title = series.title,
                 body = series.body,
@@ -136,6 +137,7 @@ data class SeriesDto(
     }
 }
 
+
 data class UpdateSeriesDto(
     @field:NotNull
     val id: UUID,
@@ -143,6 +145,27 @@ data class UpdateSeriesDto(
     val body: String? = null,
     val postIds: List<UUID>? = null
 )
+
+data class SeriesDto(
+    val id: UUID,
+    var title: String,
+    val writer: PostUserValueDto,
+    val body: String?,
+    val postIds: List<UUID>
+) {
+    companion object {
+        fun mapping(series: Series): SeriesDto {
+            return SeriesDto(
+                id = series.id!!,
+                title = series.title,
+                body = series.body,
+                writer = PostUserValueDto.mapping(series.writer),
+                postIds = series.seriesPosts.map { it.post.id!! }
+            )
+        }
+    }
+
+}
 
 
 @Service
@@ -159,7 +182,6 @@ class PostService(
         if (currentUserValue != null) return currentUserValue
         val ret = PostUserValue(id = userDto.id, account = userDto.email, nickName = userDto.nickName)
         repo.persist(ret)
-        println(ret.id)
         return ret
     }
 
@@ -267,10 +289,10 @@ class PostService(
             }
     }
 
-    fun fetchSeries(id: UUID): SeriesDto {
+    fun fetchSeries(id: UUID): SeriesDetailDto {
         return repo.fetchSeries(id).let {
             it ?: throw NotFoundSeries(id.toString())
-        }.let { SeriesDto.mapping(it) }
+        }.let { SeriesDetailDto.mapping(it) }
     }
 
     @Transactional
@@ -296,6 +318,18 @@ class PostService(
                 posts = posts
             )
             dto.id
+        }
+    }
+
+    fun listSeries(pageable: Pageable): List<SeriesDto> {
+        return repo.listSeries(pageable).map {
+            SeriesDto.mapping(it)
+        }
+    }
+
+    fun listDynamicPost(condition: PostCondition, pageable: Pageable): List<PostDto> {
+        return repo.listPost(condition, pageable).map {
+            PostDto.mapping(it)
         }
     }
 

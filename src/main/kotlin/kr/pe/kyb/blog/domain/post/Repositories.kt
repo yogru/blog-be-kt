@@ -1,6 +1,14 @@
 package kr.pe.kyb.blog.domain.post
 
+import com.querydsl.core.types.dsl.BooleanExpression
+import com.querydsl.jpa.impl.JPAQueryFactory
+import kr.pe.kyb.blog.domain.post.QPost.post
+import kr.pe.kyb.blog.domain.post.QPostTag.postTag
+import kr.pe.kyb.blog.domain.post.QPostUserValue.postUserValue
+import kr.pe.kyb.blog.domain.post.QSeries.series
+import kr.pe.kyb.blog.domain.post.QTag.tag
 import kr.pe.kyb.blog.infra.persistence.JpaBaseRepository
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -51,12 +59,20 @@ interface TagRepository : JpaRepository<Tag, String> {
 
 }
 
+
+data class PostCondition(
+    val tagNames: List<String>,
+    val deleted: Boolean = false,
+    val title: String? = null
+)
+
 @Repository
 class PostAggregateRepository(
     private val postRepository: PostRepository,
     private val tagRepository: TagRepository,
     private val postUserValueRepository: PostUserValueRepository,
     private val seriesRepository: SeriesRepository,
+    private val query: JPAQueryFactory
 ) : JpaBaseRepository() {
 
     fun findTagById(tagName: String): Tag? {
@@ -107,4 +123,46 @@ class PostAggregateRepository(
         if (ids.isNullOrEmpty()) return listOf()
         return tagRepository.findInIds(ids!!)
     }
+
+    fun listSeries(pageable: Pageable): List<Series> {
+        return query.selectFrom(series)
+            .leftJoin(series.writer, postUserValue)
+            .orderBy(series.createdAt.desc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+    }
+
+    fun listPost(condition: PostCondition, pageable: Pageable): List<Post> {
+        fun eqDelete(): BooleanExpression {
+            return post.deleted.eq(condition.deleted)
+        }
+
+        fun eqTitle(): BooleanExpression? {
+            val title = condition.title ?: return null
+            return post.title.like("%$title%")
+        }
+
+        fun inTagNames(): BooleanExpression? {
+            if (condition.tagNames.isNullOrEmpty()) return null
+            println(condition.tagNames)
+            return tag.id.`in`(condition.tagNames)
+        }
+        return query.selectDistinct(post)
+            .from(post)
+            .leftJoin(post.writer, postUserValue)
+            .leftJoin(post.postTags, postTag)
+            .leftJoin(postTag.tag, tag)
+            .where(
+                eqDelete(),
+                eqTitle(),
+                inTagNames()
+            )
+            .orderBy(post.createdAt.desc())
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+    }
+
+
 }
