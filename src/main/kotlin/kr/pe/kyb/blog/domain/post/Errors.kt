@@ -8,3 +8,5 @@ class UnremovableTagException(tagName: String) : ServiceException("${tagName}는
 class NotFoundTag(tagName: String) : ServiceException("${tagName}은 존재 하지 않는 태그 입니다.", HttpErrorRes.NotFound)
 
 class NotFoundPost(postId: String) : ServiceException("${postId}은 존재 하지 않는 게시물 입니다.", HttpErrorRes.NotFound)
+
+class NotFoundSeries(seriesId: String) : ServiceException("${seriesId}은 존재 하지 않는 시리즈 입니다.", HttpErrorRes.NotFound)

@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import kr.pe.kyb.blog.infra.persistence.JPABaseEntity
 import org.hibernate.annotations.GenericGenerator
 import java.util.*
-import kotlin.collections.HashSet
+
 
 
 @Entity
@@ -57,16 +57,9 @@ class PostUserValue(
 
 @Entity
 class Post(
-    @Column(length = 255, nullable = false)
-    var title: String,
-
-    @Column(length = 255, nullable = false)
-    var body: String,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    val writer: PostUserValue,
-
+    title: String,
+    body: String,
+    writer: PostUserValue,
     tags: List<String>
 ) : JPABaseEntity() {
     @Id
@@ -75,18 +68,22 @@ class Post(
     @Column(columnDefinition = "BINARY(16)")
     var id: UUID? = null
 
-    @Column()
+    @Column(length = 255, nullable = false)
+    var title: String = title
+
+    @Column(length = 255, nullable = false)
+    var body: String = body
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    val writer: PostUserValue = writer
+
+    @Column
     var deleted: Boolean = false
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
-    var postTags: MutableSet<PostTag> = HashSet()
+    var postTags: MutableSet<PostTag> = tags.map { PostTag(tagId = it, post = this) }.toMutableSet()
 
-
-    init {
-        id = null
-        deleted = false
-        postTags = tags.map { PostTag(tagId = it, post = this) }.toMutableSet()
-    }
 
     val tags: Set<String>
         get() = postTags.map { it.tagId }.toSet()
@@ -119,70 +116,63 @@ class Post(
 
 @Entity
 class SeriesPost(
+    orderNumber: Int,
+    series: Series,
+    post: Post
+) : JPABaseEntity() {
+
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(columnDefinition = "BINARY(16)")
-    val id: UUID? = null,
+    val id: UUID? = null
 
     @Column()
-    var orderNumber: Int,
+    var orderNumber: Int = orderNumber
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "series_id", nullable = false)
-    val series: Series,
-
-    @Column(name = "post_id", columnDefinition = "BINARY(16)", nullable = false)
-    val postId: UUID,
+    val series: Series = series
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "post_id",
-        updatable = false,
-        insertable = false,
         foreignKey = ForeignKey(name = "fk_series_post_post_id")
     )
-    var post: Post? = null
-
-) : JPABaseEntity() {}
+    var post: Post = post
+}
 
 
 @Entity
 class Series(
+    writer: PostUserValue,
+    title: String,
+    body: String,
+    posts: List<Post>,
+) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(columnDefinition = "BINARY(16)")
-    val id: UUID? = null,
-
-    @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false)
-    var userId: UUID,
+    val id: UUID? = null
 
     @Column(length = 255, nullable = false)
-    var title: String,
+    var title: String = title
 
     @Column(length = 255, nullable = false)
-    var body: String?,
-
-    postIdList: List<UUID>
-) : JPABaseEntity() {
-
-    @OneToMany(mappedBy = "series", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var seriesPosts: Set<SeriesPost>
+    var body: String = body
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "user_id",
         nullable = false,
-        insertable = false,
-        updatable = false,
         foreignKey = ForeignKey(name = "fk_series_user")
     )
-    val writer: PostUserValue? = null
+    var writer: PostUserValue = writer
 
-    init {
-        seriesPosts = postIdList.mapIndexed { index, postId ->
-            SeriesPost(postId = postId, orderNumber = index + 1, series = this)
-        }.toSet()
-    }
+    @OneToMany(mappedBy = "series", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var seriesPosts: Set<SeriesPost> = posts.mapIndexed { index, post ->
+        SeriesPost(post = post, orderNumber = index + 1, series = this)
+    }.toSet()
+
 }

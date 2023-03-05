@@ -9,6 +9,7 @@ plugins {
     kotlin("kapt") version "1.7.22"
 }
 
+
 group = "kr.pe.kyb"
 version = "0.0.1"
 java.sourceCompatibility = JavaVersion.VERSION_17
