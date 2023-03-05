@@ -150,6 +150,8 @@ class Series(
     body: String,
     posts: List<Post>,
 ) : JPABaseEntity() {
+
+
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -171,8 +173,25 @@ class Series(
     var writer: PostUserValue = writer
 
     @OneToMany(mappedBy = "series", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var seriesPosts: Set<SeriesPost> = posts.mapIndexed { index, post ->
+    var seriesPosts: MutableSet<SeriesPost> = posts.mapIndexed { index, post ->
         SeriesPost(post = post, orderNumber = index + 1, series = this)
-    }.toSet()
+    }.toMutableSet()
+
+
+    fun update(title: String?, body: String?, posts: List<Post>?) {
+        if (title != null) {
+            this.title = title
+        }
+        if (body != null) {
+            this.body = body
+        }
+        if (posts != null) {
+            this.seriesPosts.clear()
+            val newSeriesPosts = posts.mapIndexed { index, post ->
+                SeriesPost(post = post, orderNumber = index + 1, series = this)
+            }
+            this.seriesPosts.addAll(newSeriesPosts)
+        }
+    }
 
 }

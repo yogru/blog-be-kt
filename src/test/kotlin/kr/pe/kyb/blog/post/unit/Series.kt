@@ -1,9 +1,6 @@
 package kr.pe.kyb.blog.post.unit
 
-import kr.pe.kyb.blog.domain.post.CreatePostDto
-import kr.pe.kyb.blog.domain.post.CreateSeriesDto
-import kr.pe.kyb.blog.domain.post.CreatedPostDto
-import kr.pe.kyb.blog.domain.post.PostService
+import kr.pe.kyb.blog.domain.post.*
 import kr.pe.kyb.blog.mock.MyTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -42,11 +39,12 @@ class Series {
 
     @Test
     @Transactional
-    fun createSeries() {
+    fun curd() {
         // 단순 타이틀만 있는 시리즈 생성
         val title = "title."
         val createdId = postTestService.createSeries(CreateSeriesDto(title))
         Assertions.assertNotNull(createdId)
+
         val createdSeriesDto = postTestService.fetchSeries(createdId)
         Assertions.assertEquals(createdSeriesDto.title, title)
 
@@ -54,7 +52,7 @@ class Series {
         val createdSeriesWithPostsId = postTestService.createSeries(
             CreateSeriesDto(
                 title,
-                postIdList = listOf(UUID.fromString(posts[1].id), UUID.fromString(posts[2].id))
+                postIds = listOf(UUID.fromString(posts[1].id), UUID.fromString(posts[2].id))
             )
         )
         Assertions.assertNotNull(createdSeriesWithPostsId)
@@ -64,6 +62,50 @@ class Series {
             createdSeriesDtoWithPosts.posts.map { it.title }.sorted(),
             listOf(posts[1].title, posts[2].title)
         )
+
+        // delete test
+        postTestService.removeSeries(createdId)
+        Assertions.assertThrows(NotFoundSeries::class.java) {
+            postTestService.fetchSeries(createdId)
+        }
+
+        // update: post 목록 전부 없애기
+        postTestService.updateSeries(
+            UpdateSeriesDto(
+                id = createdSeriesDtoWithPosts.id,
+                postIds = listOf()
+            )
+        )
+        var updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
+        Assertions.assertEquals(updatedSeries.posts.size, 0)
+
+        // update: 단순 값 변경 타이틀..
+        val changedTitle = "changed.."
+        postTestService.updateSeries(
+            UpdateSeriesDto(updatedSeries.id, title = changedTitle)
+        )
+
+        updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
+        Assertions.assertEquals(updatedSeries.title, changedTitle)
+
+        val newPostIds = listOf(UUID.fromString(posts[2].id), UUID.fromString(posts[1].id))
+        // update: 포스트 추가.
+        postTestService.updateSeries(
+            UpdateSeriesDto(
+                updatedSeries.id,
+                postIds = newPostIds
+            )
+        )
+
+        updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
+        println(newPostIds)
+        println(updatedSeries.posts.map { it.id })
+        Assertions.assertEquals(updatedSeries.posts.size, 2)
+        Assertions.assertIterableEquals(
+            updatedSeries.posts.map { it.id },
+            newPostIds.map { it.toString() }
+        )
+
 
     }
 }

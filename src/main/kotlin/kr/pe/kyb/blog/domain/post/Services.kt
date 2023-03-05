@@ -3,6 +3,7 @@ package kr.pe.kyb.blog.domain.post
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import kr.pe.kyb.blog.domain.post.infra.PostUserRepositoryInterface
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -63,6 +64,29 @@ data class PostDto constructor(
     }
 }
 
+
+data class OrderedPostDto(
+    val id: String,
+    val orderNumber: Int,
+    val title: String,
+    val body: String,
+    val tags: Set<String>,
+    val writer: PostUserValueDto
+) {
+    companion object {
+        fun mapping(p: Post, orderNumber: Int): OrderedPostDto {
+            return OrderedPostDto(
+                id = p.id!!.toString(),
+                orderNumber = orderNumber,
+                title = p.title,
+                body = p.body,
+                tags = p.tagNames,
+                writer = PostUserValueDto.mapping(p.writer)
+            )
+        }
+    }
+}
+
 data class PostUpdateDto(
     @field:NotEmpty
     val id: String,
@@ -81,7 +105,7 @@ data class CreateSeriesDto(
     @field:NotBlank
     val title: String,
     val body: String = "",
-    val postIdList: List<UUID> = ArrayList()
+    val postIds: List<UUID> = ArrayList()
 )
 
 data class SeriesDto(
@@ -89,23 +113,36 @@ data class SeriesDto(
     var title: String,
     val writer: PostUserValueDto,
     val body: String?,
-    val posts: List<PostDto>
+    val posts: List<OrderedPostDto>
 ) {
     companion object {
+        private fun getSortedPosts(series: Series): List<OrderedPostDto> {
+            if (series.seriesPosts.isEmpty()) return listOf()
+            return series.seriesPosts
+                .sortedBy { it.orderNumber }
+                .map { it }
+                .map { OrderedPostDto.mapping(it.post, it.orderNumber) }
+        }
+
         fun mapping(series: Series): SeriesDto {
-            println(series.id)
-            println(series.title)
             return SeriesDto(
                 id = series.id!!,
                 title = series.title,
                 body = series.body,
-                writer = PostUserValueDto.mapping(series.writer!!),
-                posts = if (series.seriesPosts.isEmpty()) ArrayList()
-                else series.seriesPosts.map { PostDto.mapping(it.post!!) }
+                writer = PostUserValueDto.mapping(series.writer),
+                posts = getSortedPosts(series)
             )
         }
     }
 }
+
+data class UpdateSeriesDto(
+    @field:NotNull
+    val id: UUID,
+    var title: String? = null,
+    val body: String? = null,
+    val postIds: List<UUID>? = null
+)
 
 
 @Service
@@ -114,7 +151,6 @@ class PostService(
     val postUserRepository: PostUserRepositoryInterface,
     val repo: PostAggregateRepository
 ) {
-
 
     @Transactional
     fun getOrCreateUserValue(): PostUserValue {
@@ -197,27 +233,33 @@ class PostService(
             }
     }
 
-    fun deleteTag(tagName: String) {
+    fun deleteTag(tagName: String): String {
         if (tagName == "All") throw UnremovableTagException(tagName)
-        return repo.findTagById(tagName)
+        repo.findTagById(tagName)
             .let { it ?: throw NotFoundTag(tagName) }
             .let { repo.remove(it) }
-            .let { tagName }
+        return tagName
+    }
+
+
+    fun getSortedPosts(postIds: List<UUID>): List<Post> {
+        var posts = repo.findPostInIds(postIds)
+        var postsMap = mutableMapOf<UUID, Post>()
+        var sortedPosts = mutableListOf<Post>()
+        posts!!.map { postsMap.put(it.id!!, it) }
+        postIds.map { sortedPosts.add(postsMap[it]!!) }
+        return sortedPosts
     }
 
     @Transactional
     fun createSeries(dto: CreateSeriesDto): UUID {
         var user = getOrCreateUserValue()
-        var posts = repo.findPostInIds(dto.postIdList)
-        var postsMap = mutableMapOf<UUID, Post>()
-        var sortedPosts = mutableListOf<Post>()
-        posts.map { postsMap.put(it.id!!, it) }
-        dto.postIdList.map { sortedPosts.add(postsMap[it]!!) }
+        var posts = getSortedPosts(dto.postIds)
         return Series(
             writer = user,
             title = dto.title,
             body = dto.body,
-            posts = sortedPosts,
+            posts = posts,
         )
             .let { repo.persist(it) }
             .let {
@@ -229,6 +271,32 @@ class PostService(
         return repo.fetchSeries(id).let {
             it ?: throw NotFoundSeries(id.toString())
         }.let { SeriesDto.mapping(it) }
+    }
+
+    @Transactional
+    fun removeSeries(id: UUID): UUID {
+        return repo.findSeriesById(id).let {
+            it ?: throw NotFoundSeries(id.toString())
+        }.let {
+            repo.remove(it)
+            id
+        }
+    }
+
+    @Transactional
+    fun updateSeries(@Valid dto: UpdateSeriesDto): UUID {
+        var posts = if (dto.postIds != null) getSortedPosts(dto.postIds) else null
+
+        return repo.fetchSeries(dto.id).let {
+            it ?: throw NotFoundSeries(dto.id.toString())
+        }.let {
+            it.update(
+                title = dto.title,
+                body = dto.body,
+                posts = posts
+            )
+            dto.id
+        }
     }
 
 }

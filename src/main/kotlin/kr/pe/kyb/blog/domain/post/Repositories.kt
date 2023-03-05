@@ -88,11 +88,17 @@ class PostAggregateRepository(
             .let { if (it.isEmpty) null else it.get() }
     }
 
+    fun findSeriesById(id: UUID): Series? {
+        return seriesRepository.findById(id)
+            .let { if (it.isEmpty) null else it.get() }
+    }
+
     fun fetchSeries(id: UUID): Series? {
         return seriesRepository.fetchSeries(id)
     }
 
-    fun findPostInIds(ids: List<UUID>): List<Post> {
+    fun findPostInIds(ids: List<UUID>?): List<Post>? {
+        if (ids == null) return null
         if (ids.isEmpty()) return listOf()
         return postRepository.findInIds(ids)
     }
