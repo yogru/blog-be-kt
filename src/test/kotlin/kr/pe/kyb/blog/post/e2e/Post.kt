@@ -22,6 +22,7 @@ class Post {
     @Autowired
     lateinit var mockMvcWrapper: MockMvcWrapper
 
+
     @Test
     @Transactional
     @WithMockUser(username = testUserIdString, roles = ["USER"])
@@ -85,5 +86,57 @@ class Post {
             .withBearerToken()
             .requestSimpleFail()
         Assertions.assertEquals(foundDeletedPost.statusCode, 404)
+    }
+
+
+    @Test
+    @Transactional
+    @WithMockUser(username = testUserIdString, roles = ["USER"])
+    fun listing() {
+        val testTagNames = listOf(
+            "react", "database", "it", "kotlin", "spring", "spring-boot",
+            "os", "network", "study", "etc", "movie"
+        )
+
+        fun prepareMockData() {
+            for (tag in testTagNames) {
+                mockMvcWrapper
+                    .withPostHeader("/api/v2/post/tag", UpsertTagRes(tag = tag))
+                    .withBearerToken()
+                    .request(UpsertTagRes::class.java)
+            }
+
+            for (i in 1..100) {
+                mockMvcWrapper
+                    .withPostHeader(
+                        "/api/v2/post", PostCreateReq(
+                            title = "title$i",
+                            body = "body$i",
+                            tags = listOf(
+                                "All",
+                                testTagNames[i % testTagNames.size],
+                                testTagNames[(i + 1) % testTagNames.size]
+                            )
+                        )
+                    )
+                    .withBearerToken()
+                    .request(PostCreatedRes::class.java)
+            }
+        }
+        prepareMockData()
+
+        var list = mockMvcWrapper
+            .withGetHeader("/api/v2/post/list?page=1&&tags=${testTagNames[0]}&&tags=${testTagNames[1]}")
+            .withBearerToken()
+            .request(PostDynamicListRes::class.java)
+
+        Assertions.assertEquals(list.posts.size, 10)
+
+        Assertions.assertEquals(
+            list.posts
+                .filter { it.tags.contains(testTagNames[0]) || it.tags.contains(testTagNames[1]) }.size,
+            10
+        )
+
     }
 }

@@ -4,7 +4,9 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.infra.anotation.RestV2
+import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
+import java.util.concurrent.locks.Condition
 
 data class PostCreateReq(
     @field:NotEmpty
@@ -58,6 +60,13 @@ data class DeleteTagRes(
 
 data class FindTagRes(
     val tag: String
+)
+
+
+data class PostDynamicListRes(
+    val page: Int,
+    val perPage: Int,
+    val posts: List<PostDto>
 )
 
 @RestV2
@@ -114,6 +123,27 @@ class PostController(
     fun findTag(@PathVariable tag: String): FindTagRes {
         var tagDto = postService.findTag(tag)
         return FindTagRes(tag = tagDto.tagName)
+    }
+
+    @GetMapping("/post/list")
+    fun listPost(
+        @RequestParam(defaultValue = "1") page: Int,
+        @RequestParam(defaultValue = "10") perPage: Int = 10,
+        @RequestParam(defaultValue = "[All]") tags: List<String>,
+        @RequestParam(defaultValue = "") title: String?
+    ): PostDynamicListRes {
+        var lists = postService.listDynamicPost(
+            PostCondition(
+                tagNames = tags,
+                title = title
+            ),
+            PageRequest.of(page - 1, perPage)
+        )
+        return PostDynamicListRes(
+            page = page,
+            perPage = perPage,
+            posts = lists
+        )
     }
 
 }
