@@ -27,12 +27,12 @@ class Series {
     fun createTestPosts() {
         posts.clear()
         val createPosts: List<CreatePostDto> =
-            listOf(
-                CreatePostDto("post1", "body1", listOf("All")),
-                CreatePostDto("post2", "body2", listOf("All", "test1")),
-                CreatePostDto("post3", "body3", listOf("All", "test2", "test1")),
-                CreatePostDto("post4", "body4", listOf("All", "test3")),
-            )
+                listOf(
+                        CreatePostDto("post1", "body1", listOf("All")),
+                        CreatePostDto("post2", "body2", listOf("All", "test1")),
+                        CreatePostDto("post3", "body3", listOf("All", "test2", "test1")),
+                        CreatePostDto("post4", "body4", listOf("All", "test3")),
+                )
         for (createPost in createPosts) {
             posts.add(postTestService.createPost(createPost))
         }
@@ -51,17 +51,17 @@ class Series {
 
         // 존재하는 포스트와 연결 되어서 생성
         val createdSeriesWithPostsId = postTestService.createSeries(
-            CreateSeriesDto(
-                title,
-                postIds = listOf(UUID.fromString(posts[1].id), UUID.fromString(posts[2].id))
-            )
+                CreateSeriesDto(
+                        title,
+                        postIds = listOf(UUID.fromString(posts[1].id), UUID.fromString(posts[2].id))
+                )
         )
         Assertions.assertNotNull(createdSeriesWithPostsId)
         val createdSeriesDtoWithPosts = postTestService.fetchSeries(createdSeriesWithPostsId)
 
         Assertions.assertIterableEquals(
-            createdSeriesDtoWithPosts.posts.map { it.title }.sorted(),
-            listOf(posts[1].title, posts[2].title)
+                createdSeriesDtoWithPosts.posts.map { it.title }.sorted(),
+                listOf(posts[1].title, posts[2].title)
         )
 
         // delete test
@@ -72,10 +72,10 @@ class Series {
 
         // update: post 목록 전부 없애기
         postTestService.updateSeries(
-            UpdateSeriesDto(
-                id = createdSeriesDtoWithPosts.id,
-                postIds = listOf()
-            )
+                UpdateSeriesDto(
+                        id = createdSeriesDtoWithPosts.id,
+                        postIds = listOf()
+                )
         )
         var updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
         Assertions.assertEquals(updatedSeries.posts.size, 0)
@@ -83,7 +83,7 @@ class Series {
         // update: 단순 값 변경 타이틀..
         val changedTitle = "changed.."
         postTestService.updateSeries(
-            UpdateSeriesDto(updatedSeries.id, title = changedTitle)
+                UpdateSeriesDto(updatedSeries.id, title = changedTitle)
         )
 
         updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
@@ -92,17 +92,17 @@ class Series {
         val newPostIds = listOf(UUID.fromString(posts[2].id), UUID.fromString(posts[1].id))
         // update: 포스트 추가.
         postTestService.updateSeries(
-            UpdateSeriesDto(
-                updatedSeries.id,
-                postIds = newPostIds
-            )
+                UpdateSeriesDto(
+                        updatedSeries.id,
+                        postIds = newPostIds
+                )
         )
 
         updatedSeries = postTestService.fetchSeries(createdSeriesDtoWithPosts.id)
         Assertions.assertEquals(updatedSeries.posts.size, 2)
         Assertions.assertIterableEquals(
-            updatedSeries.posts.map { it.id },
-            newPostIds.map { it.toString() }
+                updatedSeries.posts.map { it.id },
+                newPostIds.map { it.toString() }
         )
 
 
@@ -112,16 +112,36 @@ class Series {
     @Transactional
     fun listing() {
         for (i in 1..100) {
+            val postIds = mutableListOf(UUID.fromString(posts[0].id))
+            if (i >= 95) {
+                postIds.add(UUID.fromString(posts[1].id))
+            }
+            if (i >= 97) {
+                postIds.add(UUID.fromString(posts[2].id))
+            }
             postTestService.createSeries(
-                CreateSeriesDto(
-                    title = "title_$i",
-                    body = "body_$i",
-                )
+                    CreateSeriesDto(
+                            title = "title_$i",
+                            body = "body_$i",
+                            postIds = postIds
+                    )
             )
+
         }
         var series = postTestService.listSeries(PageRequest.of(0, 10))
         Assertions.assertEquals(series.size, 10)
         series = postTestService.listSeries(PageRequest.of(10, 10))
         Assertions.assertEquals(series.size, 0)
+
+        var seriesListByPostId = postTestService.getSeriesListByPostId(UUID.fromString(posts[0].id))
+        Assertions.assertEquals(seriesListByPostId.size, 100)
+
+        seriesListByPostId = postTestService.getSeriesListByPostId(UUID.fromString(posts[1].id))
+        Assertions.assertEquals(seriesListByPostId.size, 6)
+
+        seriesListByPostId = postTestService.getSeriesListByPostId(UUID.fromString(posts[2].id))
+        Assertions.assertEquals(seriesListByPostId.size, 4)
+
     }
+
 }

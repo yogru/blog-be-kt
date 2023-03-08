@@ -6,6 +6,7 @@ import kr.pe.kyb.blog.domain.post.QPost.post
 import kr.pe.kyb.blog.domain.post.QPostTag.postTag
 import kr.pe.kyb.blog.domain.post.QPostUserValue.postUserValue
 import kr.pe.kyb.blog.domain.post.QSeries.series
+import kr.pe.kyb.blog.domain.post.QSeriesPost.seriesPost
 import kr.pe.kyb.blog.domain.post.QTag.tag
 import kr.pe.kyb.blog.infra.persistence.JpaBaseRepository
 import org.springframework.data.domain.Pageable
@@ -22,20 +23,20 @@ interface PostRepository : JpaRepository<Post, UUID> {
 
 
     @Query(
-        value = "SELECT p FROM Post p  " +
-                "left join fetch p.postTags postTags " +
-                "left join fetch postTags.tag " +
-                "where p.id in :ids"
+            value = "SELECT p FROM Post p  " +
+                    "left join fetch p.postTags postTags " +
+                    "left join fetch postTags.tag " +
+                    "where p.id in :ids"
     )
     fun findInIds(ids: List<UUID>): List<Post>
 }
 
 interface SeriesRepository : JpaRepository<Series, UUID> {
     @Query(
-        value = " SELECT s FROM Series s " +
-                " join fetch s.writer " +
-                " left join fetch s.seriesPosts seriesPost left join fetch seriesPost.post " +
-                " where s.id =:id "
+            value = " SELECT s FROM Series s " +
+                    " join fetch s.writer " +
+                    " left join fetch s.seriesPosts seriesPost left join fetch seriesPost.post " +
+                    " where s.id =:id "
     )
     fun fetchSeries(id: UUID): Series?
 
@@ -45,13 +46,13 @@ interface PostUserValueRepository : JpaRepository<PostUserValue, UUID> {}
 interface TagRepository : JpaRepository<Tag, String> {
     @Modifying
     @Query(
-        value = "INSERT INTO tag(id, created_at, updated_at) VALUES(:tagName, :createdAt, :updatedAt) " +
-                "ON DUPLICATE KEY UPDATE id=:tagName, updated_at=:updatedAt", nativeQuery = true
+            value = "INSERT INTO tag(id, created_at, updated_at) VALUES(:tagName, :createdAt, :updatedAt) " +
+                    "ON DUPLICATE KEY UPDATE id=:tagName, updated_at=:updatedAt", nativeQuery = true
     )
     fun upsertTag(
-        tagName: String,
-        createdAt: LocalDateTime = LocalDateTime.now(),
-        updatedAt: LocalDateTime = LocalDateTime.now()
+            tagName: String,
+            createdAt: LocalDateTime = LocalDateTime.now(),
+            updatedAt: LocalDateTime = LocalDateTime.now()
     )
 
     @Query(value = "SELECT t FROM Tag t where t.id in :ids")
@@ -61,18 +62,18 @@ interface TagRepository : JpaRepository<Tag, String> {
 
 
 data class PostCondition(
-    val tagNames: List<String>,
-    val deleted: Boolean = false,
-    val title: String? = null
+        val tagNames: List<String>,
+        val deleted: Boolean = false,
+        val title: String? = null
 )
 
 @Repository
 class PostAggregateRepository(
-    private val postRepository: PostRepository,
-    private val tagRepository: TagRepository,
-    private val postUserValueRepository: PostUserValueRepository,
-    private val seriesRepository: SeriesRepository,
-    private val query: JPAQueryFactory
+        private val postRepository: PostRepository,
+        private val tagRepository: TagRepository,
+        private val postUserValueRepository: PostUserValueRepository,
+        private val seriesRepository: SeriesRepository,
+        private val query: JPAQueryFactory
 ) : JpaBaseRepository() {
 
     fun findTagById(tagName: String): Tag? {
@@ -101,12 +102,12 @@ class PostAggregateRepository(
 
     fun findUserValueById(id: UUID): PostUserValue? {
         return postUserValueRepository.findById(id)
-            .let { if (it.isEmpty) null else it.get() }
+                .let { if (it.isEmpty) null else it.get() }
     }
 
     fun findSeriesById(id: UUID): Series? {
         return seriesRepository.findById(id)
-            .let { if (it.isEmpty) null else it.get() }
+                .let { if (it.isEmpty) null else it.get() }
     }
 
     fun fetchSeries(id: UUID): Series? {
@@ -126,11 +127,11 @@ class PostAggregateRepository(
 
     fun listSeries(pageable: Pageable): List<Series> {
         return query.selectFrom(series)
-            .leftJoin(series.writer, postUserValue)
-            .orderBy(series.createdAt.desc())
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
-            .fetch()
+                .leftJoin(series.writer, postUserValue)
+                .orderBy(series.createdAt.desc())
+                .offset(pageable.offset)
+                .limit(pageable.pageSize.toLong())
+                .fetch()
     }
 
     fun listPost(condition: PostCondition, pageable: Pageable): List<Post> {
@@ -148,20 +149,30 @@ class PostAggregateRepository(
             println(condition.tagNames)
             return tag.id.`in`(condition.tagNames)
         }
-        return query.selectDistinct(post)
-            .from(post)
-            .leftJoin(post.writer, postUserValue)
-            .leftJoin(post.postTags, postTag)
-            .leftJoin(postTag.tag, tag)
-            .where(
-                eqDelete(),
-                eqTitle(),
-                inTagNames()
-            )
-            .orderBy(post.createdAt.desc())
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
-            .fetch()
+        return query.selectDistinct(post).from(post)
+                .leftJoin(post.writer, postUserValue)
+                .leftJoin(post.postTags, postTag)
+                .leftJoin(postTag.tag, tag)
+                .where(
+                        eqDelete(),
+                        eqTitle(),
+                        inTagNames()
+                )
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.offset)
+                .limit(pageable.pageSize.toLong())
+                .fetch()
+    }
+
+    fun listSeriesByPostId(id: UUID): List<Series> {
+        return query
+                .selectDistinct(series).from(series)
+                .leftJoin(series.writer, postUserValue)
+                .leftJoin(series.seriesPosts, seriesPost)
+                .leftJoin(seriesPost.post, post)
+                .where(post.id.eq(id))
+                .orderBy(series.createdAt.desc())
+                .fetch()
     }
 
 

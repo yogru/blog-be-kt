@@ -343,4 +343,9 @@ class PostService(
         }
     }
 
+    fun getSeriesListByPostId(id: UUID): List<SeriesDetailDto> {
+        return repo.listSeriesByPostId(id)
+                .map { SeriesDetailDto.mapping(it) }
+    }
+
 }
