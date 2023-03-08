@@ -117,6 +117,32 @@ class Series {
     }
 
 
-    
+    @Test
+    @Transactional
+    @WithMockUser(username = testUserIdString, roles = ["USER"])
+    fun list() {
+
+        for (i in 1..100) {
+            mockMvcWrapper.withPostHeader(
+                    url = "/post/series",
+                    body = CreateSeriesReq(
+                            title = "title$i",
+                            body = "body$i",
+                    )
+            ).withBearerToken().request(CreatedSeriesRes::class.java)
+        }
+
+        var res = mockMvcWrapper.withGetHeader("/post/series/list")
+                .request(ListSeriesRes::class.java)
+
+        Assertions.assertEquals(res.seriesList.size, 10)
+
+        res = mockMvcWrapper.withGetHeader("/post/series/list?page=11")
+                .request(ListSeriesRes::class.java)
+
+        Assertions.assertEquals(res.seriesList.size, 0)
+
+    }
+
 
 }

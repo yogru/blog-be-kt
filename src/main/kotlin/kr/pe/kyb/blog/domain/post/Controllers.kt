@@ -102,6 +102,12 @@ data class UpdateSeriesRes(
         val id: String
 )
 
+data class ListSeriesRes(
+        val seriesList: List<SeriesDto>,
+        val perPage: Int,
+        val page: Int
+)
+
 @RestV2
 class PostController(
         val postService: PostService
@@ -215,6 +221,16 @@ class PostController(
         )
         return UpdateSeriesRes(id = id.toString())
     }
+
+    @GetMapping("/post/series/list")
+    fun listSeries(
+            @RequestParam(defaultValue = "1") page: Int,
+            @RequestParam(defaultValue = "10") perPage: Int
+    ): ListSeriesRes {
+        val seriesList = postService.listSeries(PageRequest.of(page - 1, perPage))
+        return ListSeriesRes(seriesList = seriesList, perPage = perPage, page = page)
+    }
+
 }
 
 
