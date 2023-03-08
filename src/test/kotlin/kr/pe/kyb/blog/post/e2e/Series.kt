@@ -1,9 +1,6 @@
 package kr.pe.kyb.blog.post.e2e
 
-import kr.pe.kyb.blog.domain.post.CreatePostDto
-import kr.pe.kyb.blog.domain.post.CreateSeriesReq
-import kr.pe.kyb.blog.domain.post.CreatedSeriesRes
-import kr.pe.kyb.blog.domain.post.PostService
+import kr.pe.kyb.blog.domain.post.*
 import kr.pe.kyb.blog.mock.MyTest
 import kr.pe.kyb.blog.mock.api.MockMvcWrapper
 import kr.pe.kyb.blog.mock.testUserIdString
@@ -47,17 +44,18 @@ class Series {
         }
 
         val preparedPostIdList = preparePosts()
+
         // post 없이..
-        var res = mockMvcWrapper.withPostHeader(
+        var series0 = mockMvcWrapper.withPostHeader(
                 url = "/post/series",
                 body = CreateSeriesReq(
                         title = "title",
                         body = "body",
                 )
         ).withBearerToken().request(CreatedSeriesRes::class.java)
-        Assertions.assertNotNull(res.id)
+        Assertions.assertNotNull(series0.id)
 
-        res = mockMvcWrapper.withPostHeader(
+        var series1 = mockMvcWrapper.withPostHeader(
                 url = "/post/series",
                 body = CreateSeriesReq(
                         title = "title",
@@ -70,10 +68,55 @@ class Series {
                 )
         ).withBearerToken().request(CreatedSeriesRes::class.java)
 
-//        Assertions.assertEquals(r)
+        // read
+        var getSeries = mockMvcWrapper
+                .withGetHeader("/post/series-with-post?seriesId=${series1.id}")
+                .request(GetSeriesRes::class.java)
 
-//        val getSeries = mockMvcWrapper.withGetHeader( "/api/v2/post/series")
+        Assertions.assertEquals(getSeries.series.posts.size, 2)
 
+        // delete
+        mockMvcWrapper
+                .withDeleteHeader("/post/series?seriesId=${series1.id}")
+                .request(DeleteSeriesRes::class.java)
+
+        val failDelete = mockMvcWrapper
+                .withGetHeader("/post/series-with-post?seriesId=${series1.id}")
+                .withBearerToken()
+                .requestSimpleFail()
+        Assertions.assertEquals(failDelete.statusCode, 404)
+
+
+        val changedTitle = "changed..title"
+        val changedPostIds = listOf(
+                preparedPostIdList[1].toString(), // 중복.
+                preparedPostIdList[2].toString(),
+                preparedPostIdList[3].toString(),
+        )
+
+        mockMvcWrapper.withPutHeader("/post/series",
+                UpdateSeriesReq(
+                        id = series0.id.toString(),
+                        title = changedTitle,
+                        postIdList = changedPostIds
+                ))
+                .withBearerToken()
+                .request(UpdateSeriesRes::class.java)
+
+
+        getSeries = mockMvcWrapper
+                .withGetHeader("/post/series-with-post?seriesId=${series0.id}")
+                .request(GetSeriesRes::class.java)
+
+        Assertions.assertEquals(getSeries.series.id, series0.id)
+        Assertions.assertEquals(getSeries.series.title, changedTitle)
+        Assertions.assertIterableEquals(
+                getSeries.series.posts.map { it.id }.sorted(),
+                changedPostIds.sorted()
+        )
     }
+
+
+    
 
 }

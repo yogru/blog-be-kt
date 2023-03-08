@@ -86,6 +86,22 @@ data class GetSeriesRes(
         val series: SeriesDetailDto
 )
 
+data class DeleteSeriesRes(
+        val seriesId: String
+)
+
+data class UpdateSeriesReq(
+        @field:NotBlank
+        val id: String,
+        val title: String? = null,
+        val body: String? = null,
+        val postIdList: List<String>? = null
+)
+
+data class UpdateSeriesRes(
+        val id: String
+)
+
 @RestV2
 class PostController(
         val postService: PostService
@@ -181,6 +197,24 @@ class PostController(
         return GetSeriesRes(series = dto)
     }
 
+    @DeleteMapping("/post/series")
+    fun deleteSeries(@RequestParam seriesId: String): DeleteSeriesRes {
+        postService.deleteSeries(UUID.fromString(seriesId))
+        return DeleteSeriesRes(seriesId = seriesId)
+    }
+
+    @PutMapping("/post/series")
+    fun updateSeries(@RequestBody @Valid req: UpdateSeriesReq): UpdateSeriesRes {
+        var id = postService.updateSeries(
+                UpdateSeriesDto(
+                        id = UUID.fromString(req.id),
+                        title = req.title,
+                        body = req.body,
+                        postIds = req.postIdList?.map { UUID.fromString(it) }
+                )
+        )
+        return UpdateSeriesRes(id = id.toString())
+    }
 }
 
 

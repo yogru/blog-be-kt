@@ -11,55 +11,55 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 data class CreatePostDto(
-    @field:NotEmpty
-    val title: String,
+        @field:NotEmpty
+        val title: String,
 
-    @field:NotEmpty
-    val body: String,
+        @field:NotEmpty
+        val body: String,
 
-    @field:NotEmpty
-    val tags: List<String>
+        @field:NotEmpty
+        val tags: List<String>
 )
 
 data class CreatedPostDto(
-    val id: String,
-    val title: String,
-    val body: String,
-    val tags: Set<String>,
-    val writerId: UUID,
-    val writerName: String,
-    val writerEmail: String
+        val id: String,
+        val title: String,
+        val body: String,
+        val tags: Set<String>,
+        val writerId: UUID,
+        val writerName: String,
+        val writerEmail: String
 )
 
 data class PostUserValueDto constructor(
-    val writerName: String,
-    val writerEmail: String
+        val writerName: String,
+        val writerEmail: String
 ) {
     companion object {
         fun mapping(u: PostUserValue): PostUserValueDto {
             return PostUserValueDto(
-                writerName = u.nickName,
-                writerEmail = u.account,
+                    writerName = u.nickName,
+                    writerEmail = u.account,
             )
         }
     }
 }
 
-data class PostDto constructor(
-    val id: String,
-    val title: String,
-    val body: String,
-    val tags: Set<String>,
-    val writer: PostUserValueDto
+data class PostDto(
+        val id: String,
+        val title: String,
+        val body: String,
+        val tags: Set<String>,
+        val writer: PostUserValueDto
 ) {
     companion object {
         fun mapping(p: Post): PostDto {
             return PostDto(
-                id = p.id!!.toString(),
-                title = p.title,
-                body = p.body,
-                tags = p.tagNames,
-                writer = PostUserValueDto.mapping(p.writer)
+                    id = p.id!!.toString(),
+                    title = p.title,
+                    body = p.body,
+                    tags = p.tagNames,
+                    writer = PostUserValueDto.mapping(p.writer)
             )
         }
     }
@@ -67,71 +67,71 @@ data class PostDto constructor(
 
 
 data class OrderedPostDto(
-    val id: String,
-    val orderNumber: Int,
-    val title: String,
-    val body: String,
-    val tags: Set<String>,
-    val writer: PostUserValueDto
+        val id: String,
+        val orderNumber: Int,
+        val title: String,
+        val body: String,
+        val tags: Set<String>,
+        val writer: PostUserValueDto
 ) {
     companion object {
         fun mapping(p: Post, orderNumber: Int): OrderedPostDto {
             return OrderedPostDto(
-                id = p.id!!.toString(),
-                orderNumber = orderNumber,
-                title = p.title,
-                body = p.body,
-                tags = p.tagNames,
-                writer = PostUserValueDto.mapping(p.writer)
+                    id = p.id!!.toString(),
+                    orderNumber = orderNumber,
+                    title = p.title,
+                    body = p.body,
+                    tags = p.tagNames,
+                    writer = PostUserValueDto.mapping(p.writer)
             )
         }
     }
 }
 
 data class PostUpdateDto(
-    @field:NotEmpty
-    val id: String,
+        @field:NotEmpty
+        val id: String,
 
-    val title: String? = null,
-    val body: String? = null,
-    val tags: List<String>? = null
+        val title: String? = null,
+        val body: String? = null,
+        val tags: List<String>? = null
 )
 
 
 data class TagDto(
-    val tagName: String
+        val tagName: String
 )
 
 data class CreateSeriesDto(
-    @field:NotBlank
-    val title: String,
-    val body: String = "",
-    val postIds: List<UUID> = listOf()
+        @field:NotBlank
+        val title: String,
+        val body: String = "",
+        val postIds: List<UUID> = listOf()
 )
 
 data class SeriesDetailDto(
-    val id: UUID,
-    var title: String,
-    val writer: PostUserValueDto,
-    val body: String?,
-    val posts: List<OrderedPostDto>
+        val id: UUID,
+        var title: String,
+        val writer: PostUserValueDto,
+        val body: String?,
+        val posts: List<OrderedPostDto>
 ) {
     companion object {
         private fun getSortedPosts(series: Series): List<OrderedPostDto> {
             if (series.seriesPosts.isEmpty()) return listOf()
             return series.seriesPosts
-                .sortedBy { it.orderNumber }
-                .map { it }
-                .map { OrderedPostDto.mapping(it.post, it.orderNumber) }
+                    .sortedBy { it.orderNumber }
+                    .map { it }
+                    .map { OrderedPostDto.mapping(it.post, it.orderNumber) }
         }
 
         fun mapping(series: Series): SeriesDetailDto {
             return SeriesDetailDto(
-                id = series.id!!,
-                title = series.title,
-                body = series.body,
-                writer = PostUserValueDto.mapping(series.writer),
-                posts = getSortedPosts(series)
+                    id = series.id!!,
+                    title = series.title,
+                    body = series.body,
+                    writer = PostUserValueDto.mapping(series.writer),
+                    posts = getSortedPosts(series)
             )
         }
     }
@@ -139,28 +139,28 @@ data class SeriesDetailDto(
 
 
 data class UpdateSeriesDto(
-    @field:NotNull
-    val id: UUID,
-    var title: String? = null,
-    val body: String? = null,
-    val postIds: List<UUID>? = null
+        @field:NotNull
+        val id: UUID,
+        var title: String? = null,
+        val body: String? = null,
+        val postIds: List<UUID>? = null
 )
 
 data class SeriesDto(
-    val id: UUID,
-    var title: String,
-    val writer: PostUserValueDto,
-    val body: String?,
-    val postIds: List<UUID>
+        val id: UUID,
+        var title: String,
+        val writer: PostUserValueDto,
+        val body: String?,
+        val postIds: List<UUID>
 ) {
     companion object {
         fun mapping(series: Series): SeriesDto {
             return SeriesDto(
-                id = series.id!!,
-                title = series.title,
-                body = series.body,
-                writer = PostUserValueDto.mapping(series.writer),
-                postIds = series.seriesPosts.map { it.post.id!! }
+                    id = series.id!!,
+                    title = series.title,
+                    body = series.body,
+                    writer = PostUserValueDto.mapping(series.writer),
+                    postIds = series.seriesPosts.map { it.post.id!! }
             )
         }
     }
@@ -171,8 +171,8 @@ data class SeriesDto(
 @Service
 @Transactional(readOnly = true)
 class PostService(
-    val postUserRepository: PostUserRepositoryInterface,
-    val repo: PostAggregateRepository
+        val postUserRepository: PostUserRepositoryInterface,
+        val repo: PostAggregateRepository
 ) {
 
     @Transactional
@@ -187,54 +187,55 @@ class PostService(
 
     @Transactional
     fun createPost(@Valid dto: CreatePostDto): CreatedPostDto {
+        // 캐싱 필요..
         var tags = repo.findTagInIds(dto.tags)
         return Post(
-            title = dto.title,
-            body = dto.body,
-            tags = tags,
-            writer = getOrCreateUserValue()
+                title = dto.title,
+                body = dto.body,
+                tags = tags,
+                writer = getOrCreateUserValue()
         )
-            .let { repo.persist(it) }
-            .let {
-                CreatedPostDto(
-                    id = it.id!!.toString(),
-                    title = it.title,
-                    body = it.body,
-                    tags = it.tagNames,
-                    writerId = it.writerId,
-                    writerEmail = it.writerEmail,
-                    writerName = it.writerName
-                )
-            }
+                .let { repo.persist(it) }
+                .let {
+                    CreatedPostDto(
+                            id = it.id!!.toString(),
+                            title = it.title,
+                            body = it.body,
+                            tags = it.tagNames,
+                            writerId = it.writerId,
+                            writerEmail = it.writerEmail,
+                            writerName = it.writerName
+                    )
+                }
     }
 
     @Transactional
     fun deletePost(id: String): UUID {
         return repo.findPostById(UUID.fromString(id))
-            .let { it ?: throw NotFoundPost(id) }
-            .let {
-                repo.remove(it)
-                UUID.fromString(id)
-            }
+                .let { it ?: throw NotFoundPost(id) }
+                .let {
+                    repo.remove(it)
+                    UUID.fromString(id)
+                }
     }
 
     @Transactional
     fun updatePost(@Valid dto: PostUpdateDto): UUID {
         var tags = repo.findTagInIds(dto.tags)
         return repo.findPostById(UUID.fromString(dto.id))
-            .let { it ?: throw NotFoundPost(dto.id) }
-            .let {
-                it.update(title = dto.title, body = dto.body, tags = tags)
-                it.id!!
-            }
+                .let { it ?: throw NotFoundPost(dto.id) }
+                .let {
+                    it.update(title = dto.title, body = dto.body, tags = tags)
+                    it.id!!
+                }
     }
 
     fun fetchPost(id: String): PostDto {
         return repo.findByIdFetchUserValue(UUID.fromString(id))
-            .let { it ?: throw NotFoundPost(id) }
-            .let {
-                PostDto.mapping(it)
-            }
+                .let { it ?: throw NotFoundPost(id) }
+                .let {
+                    PostDto.mapping(it)
+                }
     }
 
     @Transactional
@@ -249,17 +250,17 @@ class PostService(
 
     fun findTag(tagName: String): TagDto {
         return repo.findTagById(tagName)
-            .let { it ?: throw NotFoundTag(tagName) }
-            .let {
-                TagDto(tagName = it.id)
-            }
+                .let { it ?: throw NotFoundTag(tagName) }
+                .let {
+                    TagDto(tagName = it.id)
+                }
     }
 
     fun deleteTag(tagName: String): String {
         if (tagName == "All") throw UnremovableTagException(tagName)
         repo.findTagById(tagName)
-            .let { it ?: throw NotFoundTag(tagName) }
-            .let { repo.remove(it) }
+                .let { it ?: throw NotFoundTag(tagName) }
+                .let { repo.remove(it) }
         return tagName
     }
 
@@ -276,17 +277,18 @@ class PostService(
     @Transactional
     fun createSeries(dto: CreateSeriesDto): UUID {
         var user = getOrCreateUserValue()
-        var posts = getSortedPosts(dto.postIds)
+        var posts = getSortedPosts(dto.postIds.toSet().toList())
+
         return Series(
-            writer = user,
-            title = dto.title,
-            body = dto.body,
-            posts = posts,
+                writer = user,
+                title = dto.title,
+                body = dto.body,
+                posts = posts,
         )
-            .let { repo.persist(it) }
-            .let {
-                it.id!!
-            }
+                .let { repo.persist(it) }
+                .let {
+                    it.id!!
+                }
     }
 
     fun fetchSeries(id: UUID): SeriesDetailDto {
@@ -313,9 +315,9 @@ class PostService(
             it ?: throw NotFoundSeries(dto.id.toString())
         }.let {
             it.update(
-                title = dto.title,
-                body = dto.body,
-                posts = posts
+                    title = dto.title,
+                    body = dto.body,
+                    posts = posts
             )
             dto.id
         }
@@ -330,6 +332,14 @@ class PostService(
     fun listDynamicPost(condition: PostCondition, pageable: Pageable): List<PostDto> {
         return repo.listPost(condition, pageable).map {
             PostDto.mapping(it)
+        }
+    }
+
+    fun deleteSeries(seriesId: UUID) {
+        repo.findSeriesById(seriesId).let {
+            it ?: throw NotFoundSeries(seriesId.toString())
+        }.let {
+            repo.remove(it)
         }
     }
 
