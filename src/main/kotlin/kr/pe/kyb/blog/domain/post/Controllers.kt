@@ -6,77 +6,94 @@ import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
+import java.util.UUID
 import java.util.concurrent.locks.Condition
 
 data class PostCreateReq(
-    @field:NotEmpty
-    val title: String,
-    @field:NotEmpty
-    val body: String,
-    @field:NotEmpty
-    val tags: List<String>
+        @field:NotEmpty
+        val title: String,
+        @field:NotEmpty
+        val body: String,
+        @field:NotEmpty
+        val tags: List<String>
 )
 
 
 data class PostCreatedRes(
-    val id: String
+        val id: String
 )
 
 data class PostRes(
-    val post: PostDto
+        val post: PostDto
 )
 
 data class PostDeleteRes(
-    val id: String
+        val id: String
 )
 
 
 data class UpdatePostReq(
-    @field:NotBlank
-    val id: String,
-    val title: String?,
-    val body: String?,
-    val tags: List<String>?
+        @field:NotBlank
+        val id: String,
+        val title: String?,
+        val body: String?,
+        val tags: List<String>?
 )
 
 data class UpdatePostRes(
-    val id: String
+        val id: String
 )
 
 
 data class UpsertTagReq(
-    @field:NotBlank
-    val tag: String
+        @field:NotBlank
+        val tag: String
 )
 
 data class UpsertTagRes(
-    val tag: String
+        val tag: String
 )
 
 
 data class DeleteTagRes(
-    val tag: String
+        val tag: String
 )
 
 data class FindTagRes(
-    val tag: String
+        val tag: String
 )
 
 
 data class PostDynamicListRes(
-    val page: Int,
-    val perPage: Int,
-    val posts: List<PostDto>
+        val page: Int,
+        val perPage: Int,
+        val posts: List<PostDto>
+)
+
+data class CreateSeriesReq(
+        @field:NotBlank
+        val title: String,
+        val body: String = "",
+        val postIdList: List<String> = listOf()
+)
+
+
+data class CreatedSeriesRes(
+        val id: UUID
+)
+
+data class GetSeriesRes(
+        val series: SeriesDetailDto
 )
 
 @RestV2
 class PostController(
-    val postService: PostService
+        val postService: PostService
 ) {
     @PostMapping("/post")
     fun createPost(
-        @RequestBody @Valid
-        req: PostCreateReq
+            @RequestBody @Valid
+            req: PostCreateReq
     ): PostCreatedRes {
         var ret = postService.createPost(CreatePostDto(title = req.title, body = req.body, tags = req.tags))
         return PostCreatedRes(id = ret.id)
@@ -91,12 +108,12 @@ class PostController(
     @PutMapping("/post")
     fun updatePost(@RequestBody @Valid req: UpdatePostReq): UpdatePostRes {
         var updatedPostId = postService.updatePost(
-            PostUpdateDto(
-                id = req.id,
-                title = req.title,
-                body = req.body,
-                tags = req.tags
-            )
+                PostUpdateDto(
+                        id = req.id,
+                        title = req.title,
+                        body = req.body,
+                        tags = req.tags
+                )
         )
         return UpdatePostRes(id = updatedPostId.toString())
     }
@@ -127,23 +144,41 @@ class PostController(
 
     @GetMapping("/post/list")
     fun listPost(
-        @RequestParam(defaultValue = "1") page: Int,
-        @RequestParam(defaultValue = "10") perPage: Int = 10,
-        @RequestParam(defaultValue = "[All]") tags: List<String>,
-        @RequestParam(defaultValue = "") title: String?
+            @RequestParam(defaultValue = "1") page: Int,
+            @RequestParam(defaultValue = "10") perPage: Int = 10,
+            @RequestParam(defaultValue = "[All]") tags: List<String>,
+            @RequestParam(defaultValue = "") title: String?
     ): PostDynamicListRes {
         var lists = postService.listDynamicPost(
-            PostCondition(
-                tagNames = tags,
-                title = title
-            ),
-            PageRequest.of(page - 1, perPage)
+                PostCondition(
+                        tagNames = tags,
+                        title = title
+                ),
+                PageRequest.of(page - 1, perPage)
         )
         return PostDynamicListRes(
-            page = page,
-            perPage = perPage,
-            posts = lists
+                page = page,
+                perPage = perPage,
+                posts = lists
         )
+    }
+
+    @PostMapping("/post/series")
+    fun createSeries(@RequestBody @Valid req: CreateSeriesReq): CreatedSeriesRes {
+        var id = postService.createSeries(
+                CreateSeriesDto(
+                        title = req.title,
+                        body = req.body,
+                        postIds = req.postIdList.map { UUID.fromString(it) }
+                )
+        )
+        return CreatedSeriesRes(id = id)
+    }
+
+    @GetMapping("/post/series-with-post")
+    fun getSeries(@RequestParam seriesId: String): GetSeriesRes {
+        val dto = postService.fetchSeries(UUID.fromString(seriesId))
+        return GetSeriesRes(series = dto)
     }
 
 }

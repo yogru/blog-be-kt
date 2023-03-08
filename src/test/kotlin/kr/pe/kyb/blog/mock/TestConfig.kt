@@ -2,7 +2,6 @@ package kr.pe.kyb.blog.mock
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.pe.kyb.blog.domain.post.PostAggregateRepository
-import kr.pe.kyb.blog.domain.post.PostRepository
 import kr.pe.kyb.blog.domain.post.PostService
 import kr.pe.kyb.blog.domain.post.infra.CurrentUserDto
 import kr.pe.kyb.blog.domain.user.UserStatus
@@ -18,22 +17,27 @@ import java.util.*
 
 
 data class TestUserDto(
-    val id: UUID,
-    val account: String,
-    val password: String,
-    val nickName: String,
-    val roles: List<String>,
-    val status: UserStatus
+        val id: UUID,
+        val account: String,
+        val password: String,
+        val nickName: String,
+        val roles: List<String>,
+        val status: UserStatus
+)
+
+data class TestRequestDto(
+        val baseUrl: String
 )
 
 const val testUserIdString = "f3503729-afb2-4890-984e-edd1575fb1c0"
 
+
 @TestConfiguration
 class TestConfig(
-    var objectMapper: ObjectMapper,
-    var jwtTokenProvider: JwtTokenProvider,
-    var mockMvc: MockMvc,
-    val postAggregateRepository: PostAggregateRepository
+        var objectMapper: ObjectMapper,
+        var jwtTokenProvider: JwtTokenProvider,
+        var mockMvc: MockMvc,
+        val postAggregateRepository: PostAggregateRepository
 
 ) {
     @Bean
@@ -43,26 +47,27 @@ class TestConfig(
         * 반드시 데이터베이스에 저장되는 유저와 반환하는 TestUserDto 값이 같아야한다.
         * */
         return TestUserDto(
-            id = UUID.fromString(testUserIdString),
-            account = "test@kyb.pe.kr",
-            password = "1q2w3e4r",
-            nickName = "test_user",
-            status = UserStatus.valueOf("NORMAL"),
-            roles = listOf("USER")
+                id = UUID.fromString(testUserIdString),
+                account = "test@kyb.pe.kr",
+                password = "1q2w3e4r",
+                nickName = "test_user",
+                status = UserStatus.valueOf("NORMAL"),
+                roles = listOf("USER")
         )
     }
+
 
 
     @Bean
     fun mockMvcWrapper(): MockMvcWrapper {
         return MockMvcWrapper(
-            objectMapper,
-            jwtTokenProvider,
-            mockMvc,
-            WithUser(
-                id = UUID.fromString(testUserIdString),
-                roles = listOf("USER")
-            )
+                objectMapper,
+                jwtTokenProvider,
+                mockMvc,
+                WithUser(
+                        id = UUID.fromString(testUserIdString),
+                        roles = listOf("USER")
+                )
         )
     }
 
@@ -71,14 +76,14 @@ class TestConfig(
     fun postService(): PostService {
         val t = this.testUser()
         return PostService(
-            PostUserRepositoryMock(
-                CurrentUserDto(
-                    id = t.id,
-                    email = t.account,
-                    nickName = t.nickName
-                )
-            ),
-            postAggregateRepository
+                PostUserRepositoryMock(
+                        CurrentUserDto(
+                                id = t.id,
+                                email = t.account,
+                                nickName = t.nickName
+                        )
+                ),
+                postAggregateRepository
         )
     }
 

@@ -32,15 +32,15 @@ class Post {
         val tags = listOf("All")
 
         val res = mockMvcWrapper
-            .withPostHeader("/api/v2/post", PostCreateReq(title = title, body = body, tags = tags))
-            .withBearerToken()
-            .request(PostCreatedRes::class.java)
+                .withPostHeader("/post", PostCreateReq(title = title, body = body, tags = tags))
+                .withBearerToken()
+                .request(PostCreatedRes::class.java)
 
 
         val res1 = mockMvcWrapper
-            .withPostHeader("/api/v2/post", PostCreateReq(title = title, body = body, tags = tags))
-            .withBearerToken()
-            .request(PostCreatedRes::class.java)
+                .withPostHeader("/post", PostCreateReq(title = title, body = body, tags = tags))
+                .withBearerToken()
+                .request(PostCreatedRes::class.java)
 
         // Create
         Assertions.assertNotNull(res.id)
@@ -49,9 +49,9 @@ class Post {
 
         // Read
         var foundUser1 = mockMvcWrapper
-            .withGetHeader("/api/v2/post/${res.id}")
-            .withBearerToken()
-            .request(PostRes::class.java)
+                .withGetHeader("/post/${res.id}")
+                .withBearerToken()
+                .request(PostRes::class.java)
 
         Assertions.assertEquals(foundUser1.post.title, title)
         Assertions.assertEquals(foundUser1.post.body, body)
@@ -61,15 +61,15 @@ class Post {
         val changedBody = "changed...body"
         val changedTags = listOf("All", "test1", "test2")
         // update
-        mockMvcWrapper.withPutHeader("/api/v2/post", UpdatePostReq(res.id, changedTitle, changedBody, changedTags))
-            .withBearerToken()
-            .request(UpdatePostRes::class.java)
+        mockMvcWrapper.withPutHeader("/post", UpdatePostReq(res.id, changedTitle, changedBody, changedTags))
+                .withBearerToken()
+                .request(UpdatePostRes::class.java)
 
 
         foundUser1 = mockMvcWrapper
-            .withGetHeader("/api/v2/post/${res.id}")
-            .withBearerToken()
-            .request(PostRes::class.java)
+                .withGetHeader("/post/${res.id}")
+                .withBearerToken()
+                .request(PostRes::class.java)
 
 
         Assertions.assertEquals(foundUser1.post.title, changedTitle)
@@ -78,13 +78,13 @@ class Post {
 
         // delete
         val deletedPostId = mockMvcWrapper
-            .withDeleteHeader("/api/v2/post/${foundUser1.post.id}")
-            .withBearerToken().request(PostDeleteRes::class.java)
+                .withDeleteHeader("/post/${foundUser1.post.id}")
+                .withBearerToken().request(PostDeleteRes::class.java)
 
         val foundDeletedPost = mockMvcWrapper
-            .withGetHeader("/api/v2/post/${deletedPostId.id}")
-            .withBearerToken()
-            .requestSimpleFail()
+                .withGetHeader("/post/${deletedPostId.id}")
+                .withBearerToken()
+                .requestSimpleFail()
         Assertions.assertEquals(foundDeletedPost.statusCode, 404)
     }
 
@@ -94,48 +94,48 @@ class Post {
     @WithMockUser(username = testUserIdString, roles = ["USER"])
     fun listing() {
         val testTagNames = listOf(
-            "react", "database", "it", "kotlin", "spring", "spring-boot",
-            "os", "network", "study", "etc", "movie"
+                "react", "database", "it", "kotlin", "spring", "spring-boot",
+                "os", "network", "study", "etc", "movie"
         )
 
         fun prepareMockData() {
             for (tag in testTagNames) {
                 mockMvcWrapper
-                    .withPostHeader("/api/v2/post/tag", UpsertTagRes(tag = tag))
-                    .withBearerToken()
-                    .request(UpsertTagRes::class.java)
+                        .withPostHeader("/post/tag", UpsertTagRes(tag = tag))
+                        .withBearerToken()
+                        .request(UpsertTagRes::class.java)
             }
 
             for (i in 1..100) {
                 mockMvcWrapper
-                    .withPostHeader(
-                        "/api/v2/post", PostCreateReq(
-                            title = "title$i",
-                            body = "body$i",
-                            tags = listOf(
-                                "All",
-                                testTagNames[i % testTagNames.size],
-                                testTagNames[(i + 1) % testTagNames.size]
-                            )
+                        .withPostHeader(
+                                "/post", PostCreateReq(
+                                title = "title$i",
+                                body = "body$i",
+                                tags = listOf(
+                                        "All",
+                                        testTagNames[i % testTagNames.size],
+                                        testTagNames[(i + 1) % testTagNames.size]
+                                )
                         )
-                    )
-                    .withBearerToken()
-                    .request(PostCreatedRes::class.java)
+                        )
+                        .withBearerToken()
+                        .request(PostCreatedRes::class.java)
             }
         }
         prepareMockData()
 
         var list = mockMvcWrapper
-            .withGetHeader("/api/v2/post/list?page=1&&tags=${testTagNames[0]}&&tags=${testTagNames[1]}")
-            .withBearerToken()
-            .request(PostDynamicListRes::class.java)
+                .withGetHeader("/post/list?page=1&&tags=${testTagNames[0]}&&tags=${testTagNames[1]}")
+                .withBearerToken()
+                .request(PostDynamicListRes::class.java)
 
         Assertions.assertEquals(list.posts.size, 10)
 
         Assertions.assertEquals(
-            list.posts
-                .filter { it.tags.contains(testTagNames[0]) || it.tags.contains(testTagNames[1]) }.size,
-            10
+                list.posts
+                        .filter { it.tags.contains(testTagNames[0]) || it.tags.contains(testTagNames[1]) }.size,
+                10
         )
 
     }

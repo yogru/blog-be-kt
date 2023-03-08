@@ -1,3 +1,5 @@
+
+
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,3 +25,7 @@ spring:
 
 jwt:
   secret-key: 46JbihOdxPozmM17F0NoY174+=s4Sp90NtaUhbFzHe1t+LDwZ95jQ=
+
+
+server:
+  address: 0.0.0.0

@@ -69,7 +69,7 @@ class SecurityConfig(
             .authorizeHttpRequests()
             .requestMatchers("/api/v2/user/join").permitAll()
             .requestMatchers("/api/v2/user/login").permitAll()
-            .requestMatchers("/api/v2/health-check").hasAnyRole("USER")
+            .requestMatchers("/api/v2/health-check").permitAll()
             .requestMatchers("/api/v2/admin/health-check").hasAnyRole("ADMIN")
             .anyRequest().authenticated()
             .and()

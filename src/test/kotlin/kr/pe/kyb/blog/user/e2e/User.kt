@@ -35,7 +35,7 @@ class User {
     @Test
     @WithMockUser(username = testUserIdString, roles = ["USER"], setupBefore = TestExecutionEvent.TEST_METHOD)
     fun currentUserDtoCheck() {
-        val res = mockMvcWrapper.withGetHeader("/api/v2/user")
+        val res = mockMvcWrapper.withGetHeader("/user")
             .withBearerToken()
             .request(CurrentUserResponse::class.java)
         Assertions.assertEquals(res.user.id.toString(), testUserIdString)
@@ -44,7 +44,7 @@ class User {
     @Test
     fun loginTest() {
         val res = mockMvcWrapper.withPostHeader(
-            "/api/v2/user/login",
+            "/user/login",
             LoginUserRequest(email = testUserDto.account, password = testUserDto.password)
         ).request(JwtToken::class.java)
         Assertions.assertNotNull(res.accessToken)
@@ -59,7 +59,7 @@ class User {
         val nickName = "kybdev"
         val res = mockMvcWrapper
             .withPostHeader(
-                "/api/v2/user/join",
+                "/user/join",
                 JoinUserRequest(email = newEmail, password = newPassword, nickName = nickName)
             )
             .request(JoinUserResponse::class.java)

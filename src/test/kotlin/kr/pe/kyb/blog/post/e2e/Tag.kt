@@ -27,20 +27,20 @@ class Tag {
 
         // create
         var createRes = mockMvcWrapper
-            .withPostHeader("/api/v2/post/tag", UpsertTagRes(tag = newTag))
+            .withPostHeader("/post/tag", UpsertTagRes(tag = newTag))
             .withBearerToken()
             .request(UpsertTagRes::class.java)
         Assertions.assertEquals(createRes.tag, newTag)
 
         // delete
         var deleteRes = mockMvcWrapper
-            .withDeleteHeader("/api/v2/post/tag/${newTag}")
+            .withDeleteHeader("/post/tag/${newTag}")
             .withBearerToken()
             .request(DeleteTagRes::class.java)
 
         Assertions.assertEquals(deleteRes.tag, newTag)
 
-        var foundFailRes = mockMvcWrapper.withGetHeader("/api/v2/post/tag/${newTag}")
+        var foundFailRes = mockMvcWrapper.withGetHeader("/post/tag/${newTag}")
             .withBearerToken()
             .requestSimpleFail()
 
