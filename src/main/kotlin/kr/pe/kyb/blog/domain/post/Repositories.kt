@@ -146,7 +146,6 @@ class PostAggregateRepository(
 
         fun inTagNames(): BooleanExpression? {
             if (condition.tagNames.isNullOrEmpty()) return null
-            println(condition.tagNames)
             return tag.id.`in`(condition.tagNames)
         }
         return query.selectDistinct(post).from(post)

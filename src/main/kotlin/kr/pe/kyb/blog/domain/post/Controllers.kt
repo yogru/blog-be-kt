@@ -108,6 +108,10 @@ data class ListSeriesRes(
         val page: Int
 )
 
+data class TagStatisticsRes(
+        val tags: List<TagStatistics>
+)
+
 @RestV2
 class PostController(
         val postService: PostService
@@ -229,6 +233,12 @@ class PostController(
     ): ListSeriesRes {
         val seriesList = postService.listSeries(PageRequest.of(page - 1, perPage))
         return ListSeriesRes(seriesList = seriesList, perPage = perPage, page = page)
+    }
+
+    @GetMapping("/post/tag/statistics")
+    fun getTagStatistics(): TagStatisticsRes {
+        var statistics = postService.getTagStatistics()
+        return TagStatisticsRes(tags = statistics)
     }
 
 }

@@ -125,7 +125,7 @@ class Post {
         }
         prepareMockData()
 
-        var list = mockMvcWrapper
+        val list = mockMvcWrapper
                 .withGetHeader("/post/list?page=1&&tags=${testTagNames[0]}&&tags=${testTagNames[1]}")
                 .withBearerToken()
                 .request(PostDynamicListRes::class.java)
@@ -138,5 +138,13 @@ class Post {
                 10
         )
 
+        val tagStatistics = mockMvcWrapper
+                .withGetHeader("/post/tag/statistics")
+                .withBearerToken()
+                .request(TagStatisticsRes::class.java)
+
+        Assertions.assertEquals(tagStatistics.tags[0].tag, "All")
+        Assertions.assertEquals(tagStatistics.tags[0].count, 100)
+        Assertions.assertEquals(tagStatistics.tags.size, testTagNames.size + 1)
     }
 }
