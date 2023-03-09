@@ -167,6 +167,11 @@ data class SeriesDto(
 
 }
 
+data class TagStatistics(
+        val tag: String,
+        val count: Long
+)
+
 
 @Service
 @Transactional(readOnly = true)
@@ -346,6 +351,10 @@ class PostService(
     fun getSeriesListByPostId(id: UUID): List<SeriesDetailDto> {
         return repo.listSeriesByPostId(id)
                 .map { SeriesDetailDto.mapping(it) }
+    }
+
+    fun getTagStatistics(): List<TagStatistics> {
+        return repo.getTagStatistics()
     }
 
 }

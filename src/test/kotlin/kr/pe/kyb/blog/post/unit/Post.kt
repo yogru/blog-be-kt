@@ -54,8 +54,8 @@ class Post {
     @Transactional
     fun list() {
         val testTagNames = listOf(
-            "react", "database", "it", "kotlin", "spring", "spring-boot",
-            "os", "network", "study", "etc", "movie"
+                "react", "database", "it", "kotlin", "spring", "spring-boot",
+                "os", "network", "study", "etc", "movie"
         )
         for (tagName in testTagNames) {
             postTestService.upsertTag(tagName)
@@ -63,27 +63,33 @@ class Post {
 
         for (i in 1..100) {
             postTestService.createPost(
-                CreatePostDto(
-                    title = "title_$i",
-                    body = "body_$i",
-                    tags = listOf(
-                        "All",
-                        testTagNames[i % testTagNames.size],
-                        testTagNames[(i + 1) % testTagNames.size],
-                        testTagNames[(i + 2) % testTagNames.size],
+                    CreatePostDto(
+                            title = "title_$i",
+                            body = "body_$i",
+                            tags = listOf(
+                                    "All",
+                                    testTagNames[i % testTagNames.size],
+                                    testTagNames[(i + 1) % testTagNames.size],
+                                    testTagNames[(i + 2) % testTagNames.size],
+                            )
                     )
-                )
             )
         }
 
         var posts = postTestService.listDynamicPost(
-            PostCondition(
-                tagNames = listOf(testTagNames[0])
-            ), PageRequest.of(0, 10)
+                PostCondition(
+                        tagNames = listOf(testTagNames[0])
+                ), PageRequest.of(0, 10)
         )
         Assertions.assertEquals(posts.size, 10)
         val isContains = posts.map { it.tags.contains(testTagNames[0]) }
         Assertions.assertIterableEquals(isContains, (1..10).map { true })
+
+        var staticsTags = postTestService.getTagStatistics()
+        Assertions.assertEquals(staticsTags[0].tag, "All")
+        Assertions.assertEquals(staticsTags[0].count, 100)
+        Assertions.assertEquals(staticsTags.size, testTagNames.size + 1)
+
     }
 
 }

@@ -175,5 +175,19 @@ class PostAggregateRepository(
                 .fetch()
     }
 
+    fun getTagStatistics(): List<TagStatistics> {
+        var ret = query.select(tag.id, tag.id.count())
+                .from(postTag)
+                .groupBy(tag.id)
+                .orderBy(tag.id.count().desc())
+                .fetch()
+        return ret.map {
+            TagStatistics(
+                    tag = it.get(0, String::class.java) as String,
+                    count = it.get(1, Long::class.java) as Long
+            )
+        }
+    }
+
 
 }
