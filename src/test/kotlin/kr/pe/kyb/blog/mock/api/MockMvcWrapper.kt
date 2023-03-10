@@ -5,6 +5,7 @@ import kr.pe.kyb.blog.infra.error.SimpleErrorResponse
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
@@ -90,6 +91,14 @@ class MockMvcWrapper(
                 .andExpect(MockMvcResultMatchers.status().isOk)
                 .andReturn()
         return objectMapper.readValue(ret.response.contentAsString, clazz)
+    }
+
+    fun response(): MockHttpServletResponse {
+        assert(headerBuilder != null)
+        var ret = mockMvc.perform(headerBuilder!!)
+                .andExpect(MockMvcResultMatchers.status().isOk)
+                .andReturn()
+        return ret.response
     }
 
     fun requestSimpleFail(): SimpleErrorResponse {
