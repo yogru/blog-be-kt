@@ -29,3 +29,7 @@ spring:
 
 jwt:
   secret-key: 46JbihTestF0NoY174+=s4Sp90NtaUhbFzHe1t+LDwZ95jQ=
+
+
+file:
+  localPath: testStatic/files

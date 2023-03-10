@@ -52,7 +52,7 @@ open class ServiceException(
 ) : LayerException(errorRes, message)
 
 
-class ControllerException(
+open class ControllerException(
     message: String,
     errorRes: HttpErrorRes = HttpErrorRes.InternalServerError
 ) : LayerException(errorRes, message)
