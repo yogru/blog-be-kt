@@ -114,6 +114,7 @@ data class TagStatisticsRes(
 )
 
 @RestV2
+@CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
 class PostController(
         val postService: PostService
 ) {

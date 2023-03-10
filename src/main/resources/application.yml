@@ -31,3 +31,8 @@ server:
 
 file:
   localPath: static/files
+
+
+logging:
+  level:
+    root: info

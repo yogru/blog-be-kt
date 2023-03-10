@@ -4,10 +4,7 @@ import jakarta.servlet.http.HttpServletResponse
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import kr.pe.kyb.blog.infra.file.SpringFileUtils
 import org.springframework.security.access.annotation.Secured
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import java.util.UUID
 
@@ -16,6 +13,7 @@ data class UploadFileRes(
 )
 
 @RestV2
+@CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
 class FileController(
         val fileService: FileService
 ) {
