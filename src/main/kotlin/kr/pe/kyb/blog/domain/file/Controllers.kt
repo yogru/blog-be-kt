@@ -3,6 +3,7 @@ package kr.pe.kyb.blog.domain.file
 import jakarta.servlet.http.HttpServletResponse
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import kr.pe.kyb.blog.infra.file.SpringFileUtils
+import org.springframework.security.access.annotation.Secured
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -19,6 +20,7 @@ class FileController(
         val fileService: FileService
 ) {
 
+    @Secured("ROLE_USER")
     @PostMapping("/file")
     fun uploadFile(@RequestParam("file") file: MultipartFile): UploadFileRes {
         var summary = SpringFileUtils.readMultipartFileSummary(file)
@@ -31,6 +33,7 @@ class FileController(
         return UploadFileRes(fileId = fileId.toString())
     }
 
+    @Secured("permitAll")
     @GetMapping("/file/{fileId}")
     fun getFile(@PathVariable fileId: String, response: HttpServletResponse) {
         var fileDto = fileService.readFile(UUID.fromString(fileId))

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest
 import kr.pe.kyb.blog.infra.logger.Log
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -23,7 +24,7 @@ import org.springframework.web.filter.GenericFilterBean
 
 
 class JwtFilter(
-    private val jwtTokenProvider: JwtTokenProvider
+        private val jwtTokenProvider: JwtTokenProvider
 ) : GenericFilterBean() {
     companion object : Log {
         const val AUTHORIZATION_HEADER = "Authorization"
@@ -54,29 +55,23 @@ class JwtFilter(
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class SecurityConfig(
-    private val jwtTokenProvider: JwtTokenProvider
+        private val jwtTokenProvider: JwtTokenProvider
 ) {
 
     @Bean
     @Throws(Exception::class)
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .httpBasic().disable()
-            .csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeHttpRequests()
-            .requestMatchers("/api/v2/user/join").permitAll()
-            .requestMatchers("/api/v2/user/login").permitAll()
-            .requestMatchers("/api/v2/health-check").permitAll()
-            .requestMatchers("/api/v2/admin/health-check").hasAnyRole("ADMIN")
-            .anyRequest().authenticated()
-            .and()
-            .addFilterBefore(
-                JwtFilter(jwtTokenProvider),
-                UsernamePasswordAuthenticationFilter::class.java
-            )
+                .httpBasic().disable()
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilterBefore(
+                        JwtFilter(jwtTokenProvider),
+                        UsernamePasswordAuthenticationFilter::class.java
+                )
         return http.build()
     }
 

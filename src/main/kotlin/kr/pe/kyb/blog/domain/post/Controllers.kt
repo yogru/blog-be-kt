@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import org.springframework.data.domain.PageRequest
+import org.springframework.security.access.annotation.Secured
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 import java.util.concurrent.locks.Condition
@@ -168,6 +169,7 @@ class PostController(
         return FindTagRes(tag = tagDto.tagName)
     }
 
+    @Secured("permitAll")
     @GetMapping("/post/list")
     fun listPost(
             @RequestParam(defaultValue = "1") page: Int,
