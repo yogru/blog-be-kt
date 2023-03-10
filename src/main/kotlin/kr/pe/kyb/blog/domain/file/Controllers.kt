@@ -33,7 +33,7 @@ class FileController(
         return UploadFileRes(fileId = fileId.toString())
     }
 
-    @Secured("permitAll")
+    // 이거 위험한 상태. 파일 마다 권한 검사 추가해야함
     @GetMapping("/file/{fileId}")
     fun getFile(@PathVariable fileId: String, response: HttpServletResponse) {
         var fileDto = fileService.readFile(UUID.fromString(fileId))

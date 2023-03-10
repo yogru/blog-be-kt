@@ -47,7 +47,6 @@ class UserController(
 ) {
     companion object : Log {}
 
-
     @GetMapping("/user")
     fun getUser() = CurrentUserResponse(user = userManageService.getCurrentUser())
 

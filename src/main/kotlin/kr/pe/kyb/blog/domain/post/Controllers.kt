@@ -117,6 +117,8 @@ data class TagStatisticsRes(
 class PostController(
         val postService: PostService
 ) {
+
+    @Secured("ROLE_USER")
     @PostMapping("/post")
     fun createPost(
             @RequestBody @Valid
@@ -132,6 +134,7 @@ class PostController(
         return PostRes(post = post)
     }
 
+    @Secured("ROLE_USER")
     @PutMapping("/post")
     fun updatePost(@RequestBody @Valid req: UpdatePostReq): UpdatePostRes {
         var updatedPostId = postService.updatePost(
@@ -145,18 +148,21 @@ class PostController(
         return UpdatePostRes(id = updatedPostId.toString())
     }
 
+    @Secured("ROLE_USER")
     @DeleteMapping("/post/{id}")
     fun deletePost(@PathVariable id: String): PostDeleteRes {
         postService.deletePost(id = id)
         return PostDeleteRes(id = id)
     }
 
+    @Secured("ROLE_USER")
     @PostMapping("/post/tag")
     fun upsertTag(@RequestBody @Valid upsertTagReq: UpsertTagReq): UpsertTagRes {
         postService.upsertTag(upsertTagReq.tag)
         return UpsertTagRes(tag = upsertTagReq.tag)
     }
 
+    @Secured("ROLE_USER")
     @DeleteMapping("/post/tag/{tag}")
     fun deleteTag(@PathVariable tag: String): DeleteTagRes {
         postService.deleteTag(tag)
@@ -169,7 +175,6 @@ class PostController(
         return FindTagRes(tag = tagDto.tagName)
     }
 
-    @Secured("permitAll")
     @GetMapping("/post/list")
     fun listPost(
             @RequestParam(defaultValue = "1") page: Int,
@@ -191,6 +196,7 @@ class PostController(
         )
     }
 
+    @Secured("ROLE_USER")
     @PostMapping("/post/series")
     fun createSeries(@RequestBody @Valid req: CreateSeriesReq): CreatedSeriesRes {
         var id = postService.createSeries(
@@ -209,12 +215,14 @@ class PostController(
         return GetSeriesRes(series = dto)
     }
 
+    @Secured("ROLE_USER")
     @DeleteMapping("/post/series")
     fun deleteSeries(@RequestParam seriesId: String): DeleteSeriesRes {
         postService.deleteSeries(UUID.fromString(seriesId))
         return DeleteSeriesRes(seriesId = seriesId)
     }
 
+    @Secured("ROLE_USER")
     @PutMapping("/post/series")
     fun updateSeries(@RequestBody @Valid req: UpdateSeriesReq): UpdateSeriesRes {
         var id = postService.updateSeries(
