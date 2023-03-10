@@ -1,6 +1,8 @@
 package kr.pe.kyb.blog.domain.file.repository
 
+import kr.pe.kyb.blog.domain.file.DeleteFailedFile
 import kr.pe.kyb.blog.domain.file.FileEntity
+import kr.pe.kyb.blog.domain.file.InvalidFileStatusException
 import kr.pe.kyb.blog.domain.file.NotFoundFile
 import org.springframework.stereotype.Component
 import java.io.File
@@ -11,25 +13,40 @@ import java.nio.file.Paths
 @Component
 class FileSystemRepository {
 
-    fun saveFile(fileEntity: FileEntity, data: ByteArray) {
-        fun makeBasePath(fileEntity: FileEntity) {
-            println(fileEntity.basePath)
-            var path = Paths.get(fileEntity.basePath)
+    fun saveFile(entity: FileEntity, data: ByteArray) {
+        fun makeBasePath() {
+            var path = Paths.get(entity.basePath)
             Files.createDirectories(path)
         }
-
-        makeBasePath(fileEntity)
-        val fileOutputStream = FileOutputStream(File(fileEntity.dir))
+        makeBasePath()
+        val fileOutputStream = FileOutputStream(File(entity.dir))
         fileOutputStream.write(data)
         fileOutputStream.close()
-        fileEntity.saveFile()
+        entity.saveFile()
     }
 
-    fun loadFile(fileEntity: FileEntity): ByteArray {
-        var file = File(fileEntity.dir)
+    fun loadFile(entity: FileEntity): ByteArray {
+        if (!entity.isFileValid()) {
+            throw InvalidFileStatusException(entity.status)
+        }
+        var file = File(entity.dir)
         if (!file.exists()) {
-            throw NotFoundFile(fileEntity.originName)
+            throw NotFoundFile(entity.originName)
         }
         return file.readBytes()
+    }
+
+    fun delete(entity: FileEntity) {
+        var file = File(entity.dir)
+        if (!file.exists()) {
+            entity.setNoneFile()
+            throw NotFoundFile(entity.originName)
+        }
+        var deleted = file.delete()
+        if (!deleted) {
+            entity.deleteFail()
+            throw DeleteFailedFile(entity.id.toString())
+        }
+        entity.deleted()
     }
 }

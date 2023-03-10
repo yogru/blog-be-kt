@@ -10,5 +10,15 @@ class NotFoundFileEntity(
 
 
 class NotFoundFile(
-        originalName: String
-) : ServiceException("$originalName 존재하지 않는 파일", HttpErrorRes.NotFound)
+        fileId: String
+) : ServiceException("$fileId 존재하지 않는 파일", HttpErrorRes.NotFound)
+
+class DeleteFailedFile(
+        fileId: String
+) : ServiceException("$fileId 파일 삭제에 실패")
+
+
+class InvalidFileStatusException(
+        status: FileStatus
+) : ServiceException("${status.toString()} 상태")
+

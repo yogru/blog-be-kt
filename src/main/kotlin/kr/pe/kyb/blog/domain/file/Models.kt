@@ -9,17 +9,18 @@ import kotlin.collections.ArrayList
 enum class FileStatus {
     NoneFile,
     Normal(),
-    DeletedFile()
+    Deleted(),
+    DeleteFailed()
 }
 
 @Entity
 class FileEntity(
-        status: FileStatus = FileStatus.NoneFile,
         contentType: String,
         basePath: String,
         originName: String,
         ext: String,
         size: Long,
+        status: FileStatus = FileStatus.NoneFile,
 ) : JPABaseEntity() {
     @Id
     @Column(columnDefinition = "BINARY(16)")
@@ -46,7 +47,23 @@ class FileEntity(
 
 
     fun saveFile() {
-        status = FileStatus.NoneFile
+        status = FileStatus.Normal
+    }
+
+    fun deleteFail() {
+        this.status = FileStatus.DeleteFailed
+    }
+
+    fun setNoneFile() {
+        this.status = FileStatus.NoneFile
+    }
+
+    fun deleted() {
+        this.status = FileStatus.Deleted
+    }
+
+    fun isFileValid(): Boolean {
+        return this.status == FileStatus.Normal
     }
 
     val basePath: String

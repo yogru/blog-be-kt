@@ -60,5 +60,13 @@ class FileService(
                 }
     }
 
+    fun deleteFile(fileId: UUID){
+        fileEntityRepository.findById(fileId)
+                .let { it ?: throw NotFoundFileEntity(fileId.toString()) }
+                .let {
+                    fileSystemRepository.delete(it)
+                }
+    }
+
 
 }
