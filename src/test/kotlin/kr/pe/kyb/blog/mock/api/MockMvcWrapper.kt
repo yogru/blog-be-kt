@@ -5,6 +5,7 @@ import kr.pe.kyb.blog.infra.error.SimpleErrorResponse
 import kr.pe.kyb.blog.infra.jwt.JwtTokenProvider
 
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -74,6 +75,15 @@ class MockMvcWrapper(
         return this
     }
 
+    fun withFormFile(url: String, files: List<MockMultipartFile>): MockMvcWrapper {
+        val r = MockMvcRequestBuilders.multipart(preprocessUrl(url))
+        for (file in files) {
+            r.file(file)
+        }
+        headerBuilder = r
+        return this
+    }
+
     fun <T> request(clazz: Class<T>): T {
         assert(headerBuilder != null)
         var ret = mockMvc.perform(headerBuilder!!)
@@ -87,5 +97,6 @@ class MockMvcWrapper(
         var mockRet = mockMvc.perform(headerBuilder!!).andReturn()
         return objectMapper.readValue(mockRet.response.contentAsString, SimpleErrorResponse::class.java)
     }
+
 
 }

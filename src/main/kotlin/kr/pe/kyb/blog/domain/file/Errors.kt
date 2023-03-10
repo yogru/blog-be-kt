@@ -1,5 +1,6 @@
 package kr.pe.kyb.blog.domain.file
 
+import kr.pe.kyb.blog.infra.error.ControllerException
 import kr.pe.kyb.blog.infra.error.HttpErrorRes
 import kr.pe.kyb.blog.infra.error.ServiceException
 
@@ -21,4 +22,11 @@ class DeleteFailedFile(
 class InvalidFileStatusException(
         status: FileStatus
 ) : ServiceException("${status.toString()} 상태")
+
+
+class NotFoundLocalFile :
+        ControllerException("서버 로컬파일 읽기 실패", HttpErrorRes.NotFound)
+
+class InvalidMultipartFile(message: String) :
+        ControllerException(message, HttpErrorRes.BadRequest)
 
