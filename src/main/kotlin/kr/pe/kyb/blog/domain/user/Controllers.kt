@@ -26,7 +26,7 @@ data class JoinUserRequest(
 data class LoginUserRequest(
         @field:NotBlank(message = "이메일 입력 해주세요")
         @field:Email
-        val email: String,
+        val username: String,
 
         @field:NotBlank(message = "비밀번호 입력 해주세요")
         val password: String,
@@ -64,7 +64,7 @@ class UserController(
 
     @PostMapping("/user/login")
     fun loginUser(@RequestBody @Valid req: LoginUserRequest): JwtToken {
-        return this.joinService.login(req.email, req.password)
+        return this.joinService.login(req.username, req.password)
     }
 
 

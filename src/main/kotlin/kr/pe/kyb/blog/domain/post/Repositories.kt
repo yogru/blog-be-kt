@@ -140,8 +140,8 @@ class PostAggregateRepository(
         }
 
         fun eqTitle(): BooleanExpression? {
-            val title = condition.title ?: return null
-            return post.title.like("%$title%")
+            if (condition.title.isNullOrEmpty()) return null
+            return post.title.like("%${condition.title}%")
         }
 
         fun inTagNames(): BooleanExpression? {

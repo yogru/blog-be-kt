@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.access.annotation.Secured
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 import java.util.concurrent.locks.Condition
@@ -119,8 +120,8 @@ class PostController(
         val postService: PostService
 ) {
 
-    @Secured("ROLE_USER")
     @PostMapping("/post")
+    @Secured("ROLE_USER")
     fun createPost(
             @RequestBody @Valid
             req: PostCreateReq
@@ -180,8 +181,8 @@ class PostController(
     fun listPost(
             @RequestParam(defaultValue = "1") page: Int,
             @RequestParam(defaultValue = "10") perPage: Int = 10,
-            @RequestParam(defaultValue = "[All]") tags: List<String>,
-            @RequestParam(defaultValue = "") title: String?
+            @RequestParam(defaultValue = "All") tags: List<String>,
+            @RequestParam title: String?
     ): PostDynamicListRes {
         var lists = postService.listDynamicPost(
                 PostCondition(
@@ -190,6 +191,7 @@ class PostController(
                 ),
                 PageRequest.of(page - 1, perPage)
         )
+
         return PostDynamicListRes(
                 page = page,
                 perPage = perPage,

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest
 import kr.pe.kyb.blog.infra.logger.Log
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.util.StringUtils
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.filter.GenericFilterBean
 
 
@@ -34,6 +36,7 @@ class JwtFilter(
     override fun doFilter(request: ServletRequest, response: ServletResponse?, filterChain: FilterChain) {
         val token = resolveToken((request as HttpServletRequest?)!!)
         // 2. validateToken 으로 토큰 유효성 검사
+        println("토큰....")
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
             val authentication: Authentication = jwtTokenProvider.getAuthentication(token)
@@ -55,7 +58,6 @@ class JwtFilter(
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class SecurityConfig(
         private val jwtTokenProvider: JwtTokenProvider
 ) {
@@ -67,6 +69,14 @@ class SecurityConfig(
                 .httpBasic().disable()
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .authorizeHttpRequests()
+                .requestMatchers("/api/v2/health-check").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v2/post/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/api/v2/post/**").permitAll()
+                .requestMatchers("/api/v2/user/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v2/file").permitAll()
+                .anyRequest().authenticated()
                 .and()
                 .addFilterBefore(
                         JwtFilter(jwtTokenProvider),

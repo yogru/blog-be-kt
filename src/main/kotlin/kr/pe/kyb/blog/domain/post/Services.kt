@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import kr.pe.kyb.blog.domain.post.infra.PostUserRepositoryInterface
 import org.springframework.data.domain.Pageable
+import org.springframework.security.access.annotation.Secured
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -50,7 +51,9 @@ data class PostDto(
         val title: String,
         val body: String,
         val tags: Set<String>,
-        val writer: PostUserValueDto
+        val writer: PostUserValueDto,
+        val createdAt: String,
+        val updatedAt: String
 ) {
     companion object {
         fun mapping(p: Post): PostDto {
@@ -59,7 +62,9 @@ data class PostDto(
                     title = p.title,
                     body = p.body,
                     tags = p.tagNames,
-                    writer = PostUserValueDto.mapping(p.writer)
+                    writer = PostUserValueDto.mapping(p.writer),
+                    createdAt = p.createdAt.toString(),
+                    updatedAt = p.updatedAt.toString()
             )
         }
     }
@@ -189,6 +194,7 @@ class PostService(
         repo.persist(ret)
         return ret
     }
+
 
     @Transactional
     fun createPost(@Valid dto: CreatePostDto): CreatedPostDto {

@@ -18,9 +18,9 @@ import java.util.*
 
 
 data class JwtToken(
-    val grantType: String,
-    val accessToken: String,
-    val refreshToken: String
+        val grantType: String,
+        val accessToken: String,
+        val refreshToken: String
 )
 
 
@@ -43,30 +43,30 @@ class JwtTokenProvider {
 
         val accessTokenExpiresIn = Date(now + 86400000)
         val accessToken: String = Jwts.builder()
-            .setSubject(username)
-            .claim("auth", authorities)
-            .setExpiration(accessTokenExpiresIn)
-            .signWith(this.key, SignatureAlgorithm.HS256)
-            .compact()
+                .setSubject(username)
+                .claim("auth", authorities)
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(this.key, SignatureAlgorithm.HS256)
+                .compact()
 
         // Refresh Token 생성
         val refreshToken: String = Jwts.builder()
-            .setExpiration(Date(now + 86400000))
-            .signWith(this.key, SignatureAlgorithm.HS256)
-            .compact()
+                .setExpiration(Date(now + 86400000))
+                .signWith(this.key, SignatureAlgorithm.HS256)
+                .compact()
 
         return JwtToken(
-            grantType = "Bearer",
-            accessToken = accessToken,
-            refreshToken = refreshToken
+                grantType = "Bearer",
+                accessToken = accessToken,
+                refreshToken = refreshToken
         )
     }
 
     // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
     fun generateToken(authentication: Authentication): JwtToken {
         return this.generateToken(
-            username = authentication.name,
-            roles = authentication.authorities.map { it.toString() }
+                username = authentication.name,
+                roles = authentication.authorities.map { it.toString() }
         )
     }
 
@@ -80,6 +80,8 @@ class JwtTokenProvider {
         val authorities: Collection<GrantedAuthority?> = claims["auth"].toString().split(",").map {
             SimpleGrantedAuthority(it)
         }
+        println("보자!!!!!!!!")
+        println(authorities)
         // UserDetails 객체를 만들어서 Authentication 리턴
         val principal: UserDetails = User(claims.subject, "", authorities)
         return UsernamePasswordAuthenticationToken(principal, "", authorities)
