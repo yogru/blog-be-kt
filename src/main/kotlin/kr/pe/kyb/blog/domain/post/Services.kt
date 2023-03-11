@@ -32,7 +32,7 @@ data class CreatedPostDto(
         val writerEmail: String
 )
 
-data class PostUserValueDto constructor(
+data class PostUserValueDto(
         val writerName: String,
         val writerEmail: String
 ) {
@@ -77,7 +77,9 @@ data class OrderedPostDto(
         val title: String,
         val body: String,
         val tags: Set<String>,
-        val writer: PostUserValueDto
+        val writer: PostUserValueDto,
+        val createdAt: String,
+        val updatedAt: String
 ) {
     companion object {
         fun mapping(p: Post, orderNumber: Int): OrderedPostDto {
@@ -87,7 +89,9 @@ data class OrderedPostDto(
                     title = p.title,
                     body = p.body,
                     tags = p.tagNames,
-                    writer = PostUserValueDto.mapping(p.writer)
+                    writer = PostUserValueDto.mapping(p.writer),
+                    createdAt = p.createdAt.toString(),
+                    updatedAt = p.updatedAt.toString()
             )
         }
     }
@@ -119,12 +123,14 @@ data class SeriesDetailDto(
         var title: String,
         val writer: PostUserValueDto,
         val body: String?,
-        val posts: List<OrderedPostDto>
+        val posts: List<OrderedPostDto>,
+        val updatedAt: String
 ) {
     companion object {
         private fun getSortedPosts(series: Series): List<OrderedPostDto> {
             if (series.seriesPosts.isEmpty()) return listOf()
             return series.seriesPosts
+                    .filter { !it.post.deleted }
                     .sortedBy { it.orderNumber }
                     .map { it }
                     .map { OrderedPostDto.mapping(it.post, it.orderNumber) }
@@ -136,7 +142,8 @@ data class SeriesDetailDto(
                     title = series.title,
                     body = series.body,
                     writer = PostUserValueDto.mapping(series.writer),
-                    posts = getSortedPosts(series)
+                    posts = getSortedPosts(series),
+                    updatedAt = series.updatedAt.toString()
             )
         }
     }
@@ -160,12 +167,13 @@ data class SeriesDto(
 ) {
     companion object {
         fun mapping(series: Series): SeriesDto {
+
             return SeriesDto(
                     id = series.id!!,
                     title = series.title,
                     body = series.body,
                     writer = PostUserValueDto.mapping(series.writer),
-                    postIds = series.seriesPosts.map { it.post.id!! }
+                    postIds = series.seriesPosts.filter { !it.post.deleted }.map { it.id!! }
             )
         }
     }
@@ -231,6 +239,15 @@ class PostService(
     }
 
     @Transactional
+    fun setupDeletePost(id: String, deleted: Boolean) {
+        return repo.findPostById(UUID.fromString(id))
+                .let { it ?: throw NotFoundPost(id) }
+                .let {
+                    it.deleted = deleted
+                }
+    }
+
+    @Transactional
     fun updatePost(@Valid dto: PostUpdateDto): UUID {
         var tags = repo.findTagInIds(dto.tags)
         return repo.findPostById(UUID.fromString(dto.id))
@@ -267,6 +284,7 @@ class PostService(
                 }
     }
 
+    @Transactional
     fun deleteTag(tagName: String): String {
         if (tagName == "All") throw UnremovableTagException(tagName)
         repo.findTagById(tagName)
@@ -346,6 +364,7 @@ class PostService(
         }
     }
 
+    @Transactional
     fun deleteSeries(seriesId: UUID) {
         repo.findSeriesById(seriesId).let {
             it ?: throw NotFoundSeries(seriesId.toString())

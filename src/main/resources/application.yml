@@ -30,6 +30,9 @@ jwt:
 
 server:
   address: 0.0.0.0
+  servlet:
+    encoding:
+      charset: UTF-8
 
 
 file:

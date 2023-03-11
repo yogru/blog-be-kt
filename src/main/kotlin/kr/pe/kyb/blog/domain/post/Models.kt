@@ -69,7 +69,7 @@ class Post(
     @Column(length = 255, nullable = false)
     var title: String = title
 
-    @Column(length = 255, nullable = false)
+    @Lob
     var body: String = body
 
     @ManyToOne(fetch = FetchType.LAZY)

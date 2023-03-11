@@ -128,6 +128,8 @@ class PostAggregateRepository(
     fun listSeries(pageable: Pageable): List<Series> {
         return query.selectFrom(series)
                 .leftJoin(series.writer, postUserValue)
+                .leftJoin(series.seriesPosts, seriesPost)
+                .leftJoin(seriesPost.post, post)
                 .orderBy(series.createdAt.desc())
                 .offset(pageable.offset)
                 .limit(pageable.pageSize.toLong())
@@ -177,6 +179,8 @@ class PostAggregateRepository(
     fun getTagStatistics(): List<TagStatistics> {
         var ret = query.select(tag.id, tag.id.count())
                 .from(postTag)
+                .leftJoin(postTag.post, post)
+                .where(post.deleted.eq(false))
                 .groupBy(tag.id)
                 .orderBy(tag.id.count().desc())
                 .fetch()

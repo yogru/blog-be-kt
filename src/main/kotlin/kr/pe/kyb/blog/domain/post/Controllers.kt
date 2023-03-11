@@ -6,10 +6,8 @@ import jakarta.validation.constraints.NotEmpty
 import kr.pe.kyb.blog.infra.anotation.RestV2
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.access.annotation.Secured
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
-import java.util.concurrent.locks.Condition
 
 data class PostCreateReq(
         @field:NotEmpty
@@ -112,6 +110,20 @@ data class ListSeriesRes(
 
 data class TagStatisticsRes(
         val tags: List<TagStatistics>
+)
+
+data class SeriesListByPostIdRes(
+        val seriesList: List<SeriesDetailDto>
+)
+
+data class SetupDeletePostReq(
+        val id: String,
+        val deleted: Boolean
+)
+
+data class SetupDeletePostRes(
+        val id: String,
+        val deleted: Boolean
 )
 
 @RestV2
@@ -226,6 +238,16 @@ class PostController(
     }
 
     @Secured("ROLE_USER")
+    @PutMapping("/post/set-delete")
+    fun setupDeletePost(@RequestBody setupDeletePost: SetupDeletePostReq): SetupDeletePostRes {
+        // e2e 테스트 안만듬..
+        postService.setupDeletePost(setupDeletePost.id, setupDeletePost.deleted)
+        return SetupDeletePostRes(id = setupDeletePost.id,
+                deleted = setupDeletePost.deleted)
+    }
+
+
+    @Secured("ROLE_USER")
     @PutMapping("/post/series")
     fun updateSeries(@RequestBody @Valid req: UpdateSeriesReq): UpdateSeriesRes {
         var id = postService.updateSeries(
@@ -239,6 +261,13 @@ class PostController(
         return UpdateSeriesRes(id = id.toString())
     }
 
+    @GetMapping("/post/series/post-id/{postId}")
+    fun getSeriesListByPostId(@PathVariable postId: String): SeriesListByPostIdRes {
+        var ret = postService.getSeriesListByPostId(UUID.fromString(postId))
+        // e2e 테스트 안만듬..
+        return SeriesListByPostIdRes(seriesList = ret)
+    }
+
     @GetMapping("/post/series/list")
     fun listSeries(
             @RequestParam(defaultValue = "1") page: Int,
@@ -247,6 +276,7 @@ class PostController(
         val seriesList = postService.listSeries(PageRequest.of(page - 1, perPage))
         return ListSeriesRes(seriesList = seriesList, perPage = perPage, page = page)
     }
+
 
     @GetMapping("/post/tag/statistics")
     fun getTagStatistics(): TagStatisticsRes {

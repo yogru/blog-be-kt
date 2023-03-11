@@ -6,6 +6,8 @@ import kr.pe.kyb.blog.infra.file.SpringFileUtils
 import org.springframework.security.access.annotation.Secured
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 data class UploadFileRes(
@@ -32,12 +34,13 @@ class FileController(
     }
 
     // 이거 위험한 상태. 파일 마다 권한 검사 추가해야함
-    @GetMapping("/file/{fileId}")
+    @GetMapping("/file/static/{fileId}")
     fun getFile(@PathVariable fileId: String, response: HttpServletResponse) {
         var fileDto = fileService.readFile(UUID.fromString(fileId))
         response.contentType = fileDto.contentType
         response.setContentLength(fileDto.byteArray.size)
-        response.addHeader("Content-Disposition", "attachment; filename=${fileDto.originFilename}")
+        val encodedFilename = URLEncoder.encode(fileDto.originFilename, StandardCharsets.UTF_8)
+        response.addHeader("Content-Disposition", "attachment; filename=${encodedFilename}")
         response.outputStream.write(fileDto.byteArray)
         response.outputStream.flush()
     }

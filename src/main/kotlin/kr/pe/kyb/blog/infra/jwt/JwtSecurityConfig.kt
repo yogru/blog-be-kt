@@ -74,6 +74,8 @@ class SecurityConfig(
                 .requestMatchers("/api/v2/health-check").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v2/post/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/api/v2/post/**").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/api/v2/file/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v2/file/static/**").permitAll()
                 .requestMatchers("/api/v2/user/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v2/file").permitAll()
                 .anyRequest().authenticated()
