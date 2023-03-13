@@ -126,10 +126,9 @@ class PostAggregateRepository(
     }
 
     fun listSeries(pageable: Pageable): List<Series> {
-        return query.selectFrom(series)
+        return query.selectDistinct(series).from(series)
                 .leftJoin(series.writer, postUserValue)
                 .leftJoin(series.seriesPosts, seriesPost)
-                .leftJoin(seriesPost.post, post)
                 .orderBy(series.createdAt.desc())
                 .offset(pageable.offset)
                 .limit(pageable.pageSize.toLong())

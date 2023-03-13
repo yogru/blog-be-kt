@@ -45,7 +45,7 @@ class User {
     fun loginTest() {
         val res = mockMvcWrapper.withPostHeader(
             "/user/login",
-            LoginUserRequest(email = testUserDto.account, password = testUserDto.password)
+            LoginUserRequest(username = testUserDto.account, password = testUserDto.password)
         ).request(JwtToken::class.java)
         Assertions.assertNotNull(res.accessToken)
         Assertions.assertTrue(jwtTokenProvider.validateToken(res.accessToken))

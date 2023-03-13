@@ -126,19 +126,17 @@ class Series {
                             postIds = postIds
                     )
             )
-
         }
+
         var series = postTestService.listSeries(PageRequest.of(0, 10))
         Assertions.assertEquals(series.size, 10)
         series = postTestService.listSeries(PageRequest.of(10, 10))
         Assertions.assertEquals(series.size, 0)
-
         var seriesListByPostId = postTestService.getSeriesListByPostId(UUID.fromString(posts[0].id))
         Assertions.assertEquals(seriesListByPostId.size, 100)
 
         seriesListByPostId = postTestService.getSeriesListByPostId(UUID.fromString(posts[1].id))
         Assertions.assertEquals(seriesListByPostId.size, 6)
-
         seriesListByPostId = postTestService.getSeriesListByPostId(UUID.fromString(posts[2].id))
         Assertions.assertEquals(seriesListByPostId.size, 4)
 

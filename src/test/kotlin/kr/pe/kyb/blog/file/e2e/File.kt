@@ -45,7 +45,7 @@ class File {
         Assertions.assertNotNull(res.fileId)
 
         var readRes = mockMvcWrapper
-                .withGetHeader("/file/${res.fileId}")
+                .withGetHeader("/file/static/${res.fileId}")
                 .response()
 
         Assertions.assertEquals(HttpStatus.OK.value(), readRes.status)
