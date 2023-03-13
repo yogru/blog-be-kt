@@ -80,8 +80,6 @@ class JwtTokenProvider {
         val authorities: Collection<GrantedAuthority?> = claims["auth"].toString().split(",").map {
             SimpleGrantedAuthority(it)
         }
-        println("보자!!!!!!!!")
-        println(authorities)
         // UserDetails 객체를 만들어서 Authentication 리턴
         val principal: UserDetails = User(claims.subject, "", authorities)
         return UsernamePasswordAuthenticationToken(principal, "", authorities)

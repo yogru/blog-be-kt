@@ -36,7 +36,6 @@ class JwtFilter(
     override fun doFilter(request: ServletRequest, response: ServletResponse?, filterChain: FilterChain) {
         val token = resolveToken((request as HttpServletRequest?)!!)
         // 2. validateToken 으로 토큰 유효성 검사
-        println("토큰....")
         if (token != null && jwtTokenProvider.validateToken(token)) {
             // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
             val authentication: Authentication = jwtTokenProvider.getAuthentication(token)
