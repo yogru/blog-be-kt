@@ -8,7 +8,7 @@ import java.util.*
 
 @Entity
 class Tag(
-    tagName: String
+        tagName: String
 ) : JPABaseEntity() {
     @Id
     @Column(length = 255, nullable = false)
@@ -18,8 +18,8 @@ class Tag(
 
 @Entity
 class PostTag(
-    post: Post,
-    tag: Tag
+        post: Post,
+        tag: Tag
 ) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -33,8 +33,8 @@ class PostTag(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-        name = "tag_id",
-        foreignKey = ForeignKey(name = "fk_post_tag_tag")
+            name = "tag_id",
+            foreignKey = ForeignKey(name = "fk_post_tag_tag")
     )
     var tag: Tag = tag
 }
@@ -42,23 +42,23 @@ class PostTag(
 
 @Entity
 class PostUserValue(
-    @Id
-    @Column(columnDefinition = "BINARY(16)")
-    val id: UUID,
+        @Id
+        @Column(columnDefinition = "BINARY(16)")
+        val id: UUID,
 
-    @Column(length = 255, nullable = false)
-    val account: String,
+        @Column(length = 255, nullable = false)
+        val account: String,
 
-    @Column(length = 255, nullable = false)
-    val nickName: String,
+        @Column(length = 255, nullable = false)
+        val nickName: String,
 ) : JPABaseEntity()
 
 @Entity
 class Post(
-    title: String,
-    body: String,
-    writer: PostUserValue,
-    tags: List<Tag>
+        title: String,
+        body: String,
+        writer: PostUserValue,
+        tags: List<Tag>
 ) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -69,7 +69,9 @@ class Post(
     @Column(length = 255, nullable = false)
     var title: String = title
 
+
     @Lob
+    @Column(columnDefinition = "LONGTEXT")
     var body: String = body
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -81,7 +83,7 @@ class Post(
 
     @OneToMany(mappedBy = "post", cascade = [CascadeType.PERSIST], orphanRemoval = true)
     var postTags: MutableSet<PostTag> =
-        tags.map { PostTag(tag = it, post = this) }.toMutableSet()
+            tags.map { PostTag(tag = it, post = this) }.toMutableSet()
 
 
     val tagNames: Set<String>
@@ -107,7 +109,7 @@ class Post(
         if (!tags.isNullOrEmpty()) {
             this.postTags.clear()
             tags.map { PostTag(tag = it, post = this) }
-                .forEach { this.postTags.add(it) }
+                    .forEach { this.postTags.add(it) }
         }
     }
 }
@@ -115,9 +117,9 @@ class Post(
 
 @Entity
 class SeriesPost(
-    orderNumber: Int,
-    series: Series,
-    post: Post
+        orderNumber: Int,
+        series: Series,
+        post: Post
 ) : JPABaseEntity() {
 
     @Id
@@ -135,8 +137,8 @@ class SeriesPost(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-        name = "post_id",
-        foreignKey = ForeignKey(name = "fk_series_post_post_id")
+            name = "post_id",
+            foreignKey = ForeignKey(name = "fk_series_post_post_id")
     )
     var post: Post = post
 }
@@ -144,10 +146,10 @@ class SeriesPost(
 
 @Entity
 class Series(
-    writer: PostUserValue,
-    title: String,
-    body: String,
-    posts: List<Post>,
+        writer: PostUserValue,
+        title: String,
+        body: String,
+        posts: List<Post>,
 ) : JPABaseEntity() {
 
 
@@ -165,9 +167,9 @@ class Series(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
-        name = "user_id",
-        nullable = false,
-        foreignKey = ForeignKey(name = "fk_series_user")
+            name = "user_id",
+            nullable = false,
+            foreignKey = ForeignKey(name = "fk_series_user")
     )
     var writer: PostUserValue = writer
 
