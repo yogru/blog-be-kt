@@ -5,7 +5,7 @@ import kr.pe.kyb.blog.infra.error.ServiceException
 
 
 class CreateFailExistEmail(
-    email: String
+        email: String
 ) : ServiceException("이미 존재하는 이메일 $email")
 
 class CreateFail : ServiceException("영속 계층 유저 생성 실패")
@@ -16,3 +16,11 @@ class NotFoundUser(email: String) : ServiceException("${email}를 찾을 수 없
 class NotFoundUserDetail : ServiceException("현재 유저를 찾을 수 없습니다", HttpErrorRes.NotFound)
 
 class NotFoundCurrentUser : ServiceException("현재 유저를 찾을 수 없습니다.", HttpErrorRes.NotFound)
+
+
+enum class LoginFailReason {
+    NotFoundUser(),
+    Unauthorized()
+}
+
+class UserLoginFail(reason: LoginFailReason = LoginFailReason.Unauthorized) : ServiceException(reason.toString(), HttpErrorRes.Unauthorized)

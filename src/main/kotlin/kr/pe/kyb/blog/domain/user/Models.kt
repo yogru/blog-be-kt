@@ -6,7 +6,7 @@ import org.hibernate.annotations.GenericGenerator
 import java.util.UUID
 
 enum class UserStatus(
-    status: String
+        status: String
 ) {
     SIGN("sign"),
     NORMAL("normal"),
@@ -22,7 +22,7 @@ enum class RoleEum {
 // https://gksdudrb922.tistory.com/217
 @Entity
 class Role(
-    roleEnum: RoleEum
+        roleEnum: RoleEum
 ) : JPABaseEntity() {
     @Id
     @Column(length = 255, nullable = false)
@@ -32,8 +32,8 @@ class Role(
 
 @Entity
 class UserRole(
-    user: UserEntity,
-    role: Role
+        user: UserEntity,
+        role: Role
 ) : JPABaseEntity() {
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -52,12 +52,12 @@ class UserRole(
 
 @Entity
 class UserEntity(
-    id: UUID? = null,
-    account: String,
-    password: String,
-    status: UserStatus = UserStatus.SIGN,
-    nickName: String,
-    roles: List<Role>
+        id: UUID? = null,
+        account: String,
+        password: String,
+        status: UserStatus = UserStatus.SIGN,
+        nickName: String,
+        roles: List<Role>
 ) : JPABaseEntity() {
 
     @Id
@@ -82,4 +82,9 @@ class UserEntity(
 
     val roleStrings: List<String>
         get() = this.userRoles.map { it.role.id.toString() }
+
+    fun isLoginEnabled(): Boolean = when(this.status) {
+        UserStatus.NORMAL -> true
+        else -> false
+    }
 }

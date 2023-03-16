@@ -36,16 +36,16 @@ class User {
     @WithMockUser(username = testUserIdString, roles = ["USER"], setupBefore = TestExecutionEvent.TEST_METHOD)
     fun currentUserDtoCheck() {
         val res = mockMvcWrapper.withGetHeader("/user")
-            .withBearerToken()
-            .request(CurrentUserResponse::class.java)
+                .withBearerToken()
+                .request(CurrentUserResponse::class.java)
         Assertions.assertEquals(res.user.id.toString(), testUserIdString)
     }
 
     @Test
     fun loginTest() {
         val res = mockMvcWrapper.withPostHeader(
-            "/user/login",
-            LoginUserRequest(username = testUserDto.account, password = testUserDto.password)
+                "/user/login",
+                LoginUserRequest(username = testUserDto.account, password = testUserDto.password)
         ).request(JwtToken::class.java)
         Assertions.assertNotNull(res.accessToken)
         Assertions.assertTrue(jwtTokenProvider.validateToken(res.accessToken))
@@ -58,13 +58,20 @@ class User {
         val newPassword = "1Adkljvio23uo23nsd)!$#@mnz!"
         val nickName = "kybdev"
         val res = mockMvcWrapper
-            .withPostHeader(
-                "/user/join",
-                JoinUserRequest(email = newEmail, password = newPassword, nickName = nickName)
-            )
-            .request(JoinUserResponse::class.java)
+                .withPostHeader(
+                        "/user/join",
+                        JoinUserRequest(email = newEmail, password = newPassword, nickName = nickName)
+                )
+                .request(JoinUserResponse::class.java)
         Assertions.assertNotNull(res)
         Assertions.assertNotNull(res.userId)
+
+        // 가입 직후 sign 상태로 로그인 불가능
+        val loginRes = mockMvcWrapper.withPostHeader(
+                "/user/login",
+                LoginUserRequest(username = newEmail, password = newPassword)
+        ).requestSimpleFail()
+        Assertions.assertEquals(loginRes.statusCode, 401)
     }
 
 }

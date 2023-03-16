@@ -116,7 +116,8 @@ class JoinService(
 
     @Transactional
     fun login(account: String, password: String): JwtToken = repo.findOneByAccount(account)
-            .let { it ?: throw UsernameNotFoundException("해당 유저 $account 찾을 수 없습니다.") }
+            .let { it ?: throw UserLoginFail(LoginFailReason.NotFoundUser) }
+            .let { if (it.isLoginEnabled()) it else throw UserLoginFail() }
             .also { !passwordEncoder.matches(password, it.password) && throw RuntimeException("일치하지 않는 패스워드") }
             .let { jwtTokenProvider.generateToken(username = it.id.toString(), roles = it.roleStrings) }
 
