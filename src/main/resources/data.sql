@@ -25,7 +25,7 @@ create table post
     id         binary(16) not null primary key,
     created_at datetime(6) not null,
     updated_at datetime(6) not null,
-    body       tinytext null,
+    body       longtext null,
     deleted    bit null,
     title      varchar(255) not null,
     user_id    binary(16) not null,
