@@ -1,11 +1,11 @@
 package kr.pe.kyb.blog.infra.file
 
-import io.minio.BucketExistsArgs
-import io.minio.MakeBucketArgs
-import io.minio.MinioClient
+import io.minio.*
 import kr.pe.kyb.blog.infra.error.InfraException
+import org.apache.http.entity.ContentType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import java.io.InputStream
 
 
 @Component
@@ -55,6 +55,31 @@ class MinIoWrapper(
                 .build()
         )
         return true
+    }
+
+    override fun putObject(
+        objectName: String,
+        inputStream: InputStream,
+        contentType: ContentType
+    ) {
+        val client = this.getClient()
+        client.putObject(
+            PutObjectArgs.builder()
+                .bucket(configValues.defaultBucketName)
+                .`object`(objectName)
+                .stream(inputStream, -1, 10485760)
+                .contentType(contentType.toString())
+                .build()
+        )
+    }
+
+    override fun getObject(objectName: String): ByteArray {
+        return this.getClient().getObject(
+            GetObjectArgs.builder()
+                .bucket(configValues.defaultBucketName)
+                .`object`(objectName)
+                .build()
+        ).readAllBytes()
     }
 
 }

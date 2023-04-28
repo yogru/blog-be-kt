@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 @MyTest
 @DisplayName("unit: files")
 @Transactional(readOnly = true)
-class File {
+class FileTest {
 
 
     @Autowired
