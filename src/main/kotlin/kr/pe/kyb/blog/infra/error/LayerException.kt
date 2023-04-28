@@ -45,6 +45,9 @@ open class LayerException(
 class DomainException(message: String) :
     LayerException(HttpErrorRes.InternalServerError, message)
 
+class InfraException(message: String) :
+    LayerException(HttpErrorRes.InternalServerError, message)
+
 
 open class ServiceException(
     message: String,

@@ -6,9 +6,9 @@ spring:
       enabled: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: 'jdbc:mysql://localhost:3306/local?serverTimezone=Asia/Seoul'
+    url: 'jdbc:mysql://172.30.1.2:3306/local?serverTimezone=Asia/Seoul'
     username: 'root'
-    password: '1234'
+    password: '1q2w3e4r1!'
   jpa:
     hibernate:
       ddl-auto: validate
@@ -42,9 +42,15 @@ server:
 
 file:
   localPath: static/files
+  minIO:
+    endpoint: http://172.30.1.12
+    port: 9000
+    accessKey: admin
+    secretAccessKey: password
+    defaultBucketName: blog
 
 
 logging:
   level:
     org:
-      springframework: debug
+      springframework: info

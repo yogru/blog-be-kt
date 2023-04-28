@@ -32,9 +32,10 @@ dependencies {
     // rest template..
     implementation("org.apache.httpcomponents:httpcore:4.4.15")
     implementation("org.apache.httpcomponents:httpclient:4.5.13")
-
 //    implementation ("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-//
+
+    // minIO
+    implementation("io.minio:minio:8.4.3")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
