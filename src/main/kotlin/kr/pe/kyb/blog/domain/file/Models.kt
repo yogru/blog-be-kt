@@ -1,10 +1,9 @@
 package kr.pe.kyb.blog.domain.file
 
 import jakarta.persistence.*
+import kr.pe.kyb.blog.infra.error.DomainException
 import kr.pe.kyb.blog.infra.persistence.JPABaseEntity
-import org.hibernate.annotations.GenericGenerator
 import java.util.*
-import kotlin.collections.ArrayList
 
 enum class FileStatus {
     NoneFile,
@@ -15,12 +14,12 @@ enum class FileStatus {
 
 @Entity
 class FileEntity(
-        contentType: String,
-        basePath: String,
-        originName: String,
-        ext: String,
-        size: Long,
-        status: FileStatus = FileStatus.NoneFile,
+    contentType: String,
+    basePath: String,
+    originName: String,
+    ext: String,
+    size: Long,
+    status: FileStatus = FileStatus.NoneFile,
 ) : JPABaseEntity() {
     @Id
     @Column(columnDefinition = "BINARY(16)")
@@ -46,13 +45,14 @@ class FileEntity(
     val size: Long = size
 
 
-    fun saveFile() {
+    fun savedFile() {
         status = FileStatus.Normal
     }
 
     fun deleteFail() {
         this.status = FileStatus.DeleteFailed
     }
+
 
     fun setNoneFile() {
         this.status = FileStatus.NoneFile
@@ -62,8 +62,14 @@ class FileEntity(
         this.status = FileStatus.Deleted
     }
 
-    fun isFileValid(): Boolean {
-        return this.status == FileStatus.Normal
+    fun checkValid(): Boolean {
+        if (this.status == FileStatus.Normal) {
+            return true
+        }
+        if (this.status == FileStatus.Deleted) {
+            throw DomainException("삭제된 파일: " + this.id)
+        }
+        throw DomainException("불안정한 파일: " + this.id)
     }
 
     val basePath: String

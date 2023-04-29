@@ -12,9 +12,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-      properties: # property 사용 설정
-        hibernate: # hibernate property 설정
-          format_sql: true
+
 
     properties:
       hibernate:
@@ -45,8 +43,8 @@ file:
   minIO:
     endpoint: http://172.30.1.12
     port: 9000
-    accessKey: admin
-    secretAccessKey: password
+    accessKey: ITrCtVfcV8RzWmkv
+    secretAccessKey: l6Zx2YFoo7vf8VbUQe4E5h8pnwYjKZ04
     defaultBucketName: blog
 
 

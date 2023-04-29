@@ -15,14 +15,17 @@ class MinIoObjectStorage(
             data.inputStream(),
             fileEntity.contentType
         )
+        fileEntity.savedFile()
     }
 
     fun download(fileEntity: FileEntity): ByteArray {
+        fileEntity.checkValid()
         return minIoWrapper.getObject(fileEntity.id.toString())
     }
 
 
     fun delete(fileEntity: FileEntity) {
+        fileEntity.checkValid()
         minIoWrapper.removeObject(fileEntity.id.toString())
     }
 

@@ -10,7 +10,9 @@ import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Paths
 
-@Component
+/**
+ * 기존에는 서버쪽 파일시스템에 파일을 저장했으나 minIO로 이전함.
+ * */
 class FileSystemRepository {
 
     fun saveFile(entity: FileEntity, data: ByteArray) {
@@ -22,11 +24,11 @@ class FileSystemRepository {
         val fileOutputStream = FileOutputStream(File(entity.dir))
         fileOutputStream.write(data)
         fileOutputStream.close()
-        entity.saveFile()
+        entity.savedFile()
     }
 
     fun loadFile(entity: FileEntity): ByteArray {
-        if (!entity.isFileValid()) {
+        if (!entity.checkValid()) {
             throw InvalidFileStatusException(entity.status)
         }
         var file = File(entity.dir)

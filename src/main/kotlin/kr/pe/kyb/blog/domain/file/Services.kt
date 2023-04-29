@@ -63,6 +63,8 @@ class FileService(
             .let { it ?: throw NotFoundFileEntity(fileId.toString()) }
             .let {
                 minIoObjectStorage.delete(it)
+                it.deleted()
+                fileEntityRepository.persist(it)
             }
     }
 
