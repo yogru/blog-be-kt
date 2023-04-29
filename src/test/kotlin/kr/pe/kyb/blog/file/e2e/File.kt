@@ -31,22 +31,24 @@ class File {
     @Test
     @WithMockUser(username = testUserIdString, roles = ["USER"])
     @Transactional
-    fun `파일 생성 조회`() {
+    fun crd() {
         val bytes = "테스트".toByteArray()
         val originName = "test.txt"
-        var contentType = "text/plain"
-        var res = mockMvcWrapper
-                .withFormFile("/file",
-                        listOf(MockMultipartFile("file", originName, contentType, bytes)))
-                .withBearerToken()
-                .request(UploadFileRes::class.java)
+        val contentType = "text/plain"
+        val res = mockMvcWrapper
+            .withFormFile(
+                "/file",
+                listOf(MockMultipartFile("file", originName, contentType, bytes))
+            )
+            .withBearerToken()
+            .request(UploadFileRes::class.java)
 
         Assertions.assertNotNull(res)
         Assertions.assertNotNull(res.fileId)
 
-        var readRes = mockMvcWrapper
-                .withGetHeader("/file/static/${res.fileId}")
-                .response()
+        val readRes = mockMvcWrapper
+            .withGetHeader("/file/static/${res.fileId}")
+            .response()
 
         Assertions.assertEquals(HttpStatus.OK.value(), readRes.status)
         Assertions.assertEquals(bytes.size, readRes.contentLength)

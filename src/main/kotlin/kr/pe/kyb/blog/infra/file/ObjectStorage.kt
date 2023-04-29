@@ -1,6 +1,5 @@
 package kr.pe.kyb.blog.infra.file
 
-import org.apache.http.entity.ContentType
 import java.io.InputStream
 
 interface ObjectStorage {
@@ -9,7 +8,7 @@ interface ObjectStorage {
     fun putObject(
         objectName: String,
         inputStream: InputStream,
-        contentType: ContentType
+        contentType: String
     )
 
     fun getObject(

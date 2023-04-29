@@ -26,9 +26,7 @@ class MinIOTest {
         Assertions.assertThrows(InfraException::class.java) {
             minIO.makeBucket("test")
         }
-
     }
-
 
     @Test
     fun putAndGetObject() {
@@ -36,7 +34,7 @@ class MinIOTest {
         val uuidId = UUID.randomUUID().toString()
         var resource = resourceLoader.getResource("classpath:$fileName")
         var inputStream = resource.inputStream
-        minIO.putObject(uuidId, inputStream, ContentType.IMAGE_JPEG)
+        minIO.putObject(uuidId, inputStream, ContentType.IMAGE_JPEG.toString())
         val bytes = minIO.getObject(uuidId)
 
         resource = resourceLoader.getResource("classpath:$fileName")

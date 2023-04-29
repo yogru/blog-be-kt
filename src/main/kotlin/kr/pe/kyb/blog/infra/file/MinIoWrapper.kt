@@ -2,7 +2,6 @@ package kr.pe.kyb.blog.infra.file
 
 import io.minio.*
 import kr.pe.kyb.blog.infra.error.InfraException
-import org.apache.http.entity.ContentType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.InputStream
@@ -28,7 +27,7 @@ data class MinIOConfigValues(
 
 @Component
 class MinIoWrapper(
-    private val configValues: MinIOConfigValues
+    val configValues: MinIOConfigValues
 ) : ObjectStorage {
 
     private fun getClient(): MinioClient {
@@ -60,7 +59,7 @@ class MinIoWrapper(
     override fun putObject(
         objectName: String,
         inputStream: InputStream,
-        contentType: ContentType
+        contentType: String
     ) {
         val client = this.getClient()
         client.putObject(
@@ -68,7 +67,7 @@ class MinIoWrapper(
                 .bucket(configValues.defaultBucketName)
                 .`object`(objectName)
                 .stream(inputStream, -1, 10485760)
-                .contentType(contentType.toString())
+                .contentType(contentType)
                 .build()
         )
     }
