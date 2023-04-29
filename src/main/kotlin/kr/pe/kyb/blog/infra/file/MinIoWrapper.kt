@@ -82,4 +82,20 @@ class MinIoWrapper(
         ).readAllBytes()
     }
 
+    override fun removeObject(objectName: String, versionId: String?) {
+        val removeArgObj = if (versionId != null) {
+            RemoveObjectArgs.builder()
+                .bucket(this.configValues.defaultBucketName)
+                .`object`(objectName)
+                .versionId(versionId)
+                .build()
+        } else {
+            RemoveObjectArgs.builder()
+                .bucket(this.configValues.defaultBucketName)
+                .`object`(objectName)
+                .build()
+        }
+        this.getClient().removeObject(removeArgObj)
+    }
+
 }

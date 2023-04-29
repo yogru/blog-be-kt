@@ -37,12 +37,12 @@ class MinIOTest {
         var resource = resourceLoader.getResource("classpath:$fileName")
         var inputStream = resource.inputStream
         minIO.putObject(uuidId, inputStream, ContentType.IMAGE_JPEG)
-        var bytes = minIO.getObject(uuidId)
+        val bytes = minIO.getObject(uuidId)
 
         resource = resourceLoader.getResource("classpath:$fileName")
         inputStream = resource.inputStream
         Assertions.assertEquals(inputStream.readAllBytes().size, bytes.size)
+        minIO.removeObject(uuidId)
     }
-
 
 }

@@ -15,4 +15,6 @@ interface ObjectStorage {
     fun getObject(
         objectName: String
     ): ByteArray
+
+    fun removeObject(objectName: String, versionId: String? = null)
 }
